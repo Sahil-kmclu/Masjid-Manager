@@ -1,0 +1,25 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  display: flex;
+  flex: 1;
+  padding-top: 70px;
+  /* Header height */
+}
+
+.main-content {
+  flex: 1;
+  padding: var(--spacing-lg) 0;
+  min-height: calc(100vh - 70px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    padding: var(--spacing-md) 0;
+  }
+}

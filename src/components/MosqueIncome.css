@@ -1,0 +1,85 @@
+.mosque-income {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.category-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm);
+    background: var(--color-background);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.category-item:hover {
+    background: var(--color-border);
+    transform: translateX(4px);
+}
+
+.category-info {
+    flex: 1;
+}
+
+.category-name {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 2px;
+}
+
+.category-count {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+}
+
+.category-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-success);
+}
+
+.income-source {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.filters-row {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+@media (max-width: 640px) {
+    .filters-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .category-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .category-amount {
+        align-self: flex-end;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

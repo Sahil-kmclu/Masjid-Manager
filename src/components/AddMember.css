@@ -1,0 +1,19 @@
+.page-header {
+    margin-bottom: var(--spacing-lg);
+}
+
+.page-header h2 {
+    margin-bottom: 0.25rem;
+}
+
+.form-card {
+    max-width: 800px;
+}
+
+.error-message {
+    display: block;
+    margin-top: var(--spacing-xs);
+    font-size: 0.875rem;
+    color: var(--danger-color);
+    font-weight: 500;
+}
