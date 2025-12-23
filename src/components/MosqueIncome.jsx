@@ -148,10 +148,9 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome }) {
                         style={{ flex: 1 }}
                     />
                     <select
-                        className="form-select"
+                        className="form-select filter-select"
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
-                        style={{ width: '200px' }}
                     >
                         <option value="all">All Categories</option>
                         {categories.map(cat => (

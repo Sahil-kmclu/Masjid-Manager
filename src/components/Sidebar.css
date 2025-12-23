@@ -1,60 +1,111 @@
 .sidebar {
     width: 280px;
     background: var(--bg-card);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-right: 1px solid var(--border-color);
     padding: var(--spacing-md);
     position: sticky;
     top: 70px;
     height: calc(100vh - 70px);
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.sidebar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
 }
 
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-md);
+    padding-bottom: 2rem;
+}
+
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar-group-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 0 1rem;
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
+    opacity: 0.7;
 }
 
 .sidebar-item {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    padding: 1rem;
+    padding: 0.875rem 1rem;
     background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
+    border: none;
+    border-radius: var(--radius-md);
     color: var(--text-secondary);
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: all 0.2s ease;
     text-align: left;
     width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .sidebar-item:hover {
-    background: rgba(102, 126, 234, 0.1);
-    border-color: var(--border-color);
+    background: var(--bg-hover, rgba(255, 255, 255, 0.05));
     color: var(--text-primary);
+    transform: translateX(4px);
 }
 
 .sidebar-item.active {
     background: var(--primary-gradient);
-    border-color: transparent;
     color: white;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    font-weight: 600;
+}
+
+.sidebar-item.active .sidebar-icon {
+    transform: scale(1.1);
 }
 
 .sidebar-icon {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
 }
 
 .sidebar-label {
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+.active-indicator {
+    position: absolute;
+    right: 12px;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+/* Mobile Specific Styles */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -62,94 +113,110 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 998;
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1040;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
 
 .sidebar-overlay.active {
+    display: block;
     opacity: 1;
-    pointer-events: auto;
 }
 
 .sidebar-header-mobile {
     display: none;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    margin-bottom: 0.5rem;
+    /* border-bottom: 1px solid var(--border-color); */
 }
 
 .sidebar-header-mobile h3 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
     background: var(--primary-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    letter-spacing: -0.02em;
 }
 
 .close-btn {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    color: var(--text-secondary);
-    font-size: 2rem;
-    line-height: 1;
+    color: var(--text-primary);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    padding: 0;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.close-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 @media (max-width: 768px) {
-    .sidebar-overlay.active {
-        display: block;
-    }
-
     .sidebar {
         position: fixed;
         top: 0;
         left: 0;
         bottom: 0;
-        width: 280px;
+        width: 85%; /* Slightly wider for better readability, max-width handled below */
+        max-width: 320px;
         height: 100vh;
-        z-index: 999;
+        z-index: 1050;
         transform: translateX(-100%);
-        transition: transform 0.3s ease-in-out;
-        border-right: 1px solid var(--border-color);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-right: none;
         background: var(--bg-card);
-        /* Ensure background is opaque */
-        background-color: var(--bg-secondary); 
+        /* Ensure readable background in dark mode */
+        background-color: #1a1a1a; 
+        box-shadow: none;
+        padding: 0; /* Reset padding for header/nav split */
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Light mode override if needed, assuming dark mode default based on user screenshot */
+    @media (prefers-color-scheme: light) {
+        .sidebar {
+            background-color: #ffffff;
+        }
     }
 
     .sidebar.active {
         transform: translateX(0);
-        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        box-shadow: 10px 0 40px rgba(0, 0, 0, 0.5);
     }
 
     .sidebar-header-mobile {
         display: flex;
+        flex-shrink: 0;
     }
 
     .sidebar-nav {
-        flex-direction: column;
+        flex: 1;
         overflow-y: auto;
-        height: calc(100% - 60px);
+        padding: 0 1rem 2rem 1rem;
+        gap: var(--spacing-md);
     }
 
-    .sidebar-item {
-        flex-direction: row;
-        min-width: auto;
-        padding: 1rem;
-        gap: var(--spacing-sm);
-    }
-
-    .sidebar-icon {
-        font-size: 1.5rem;
-    }
-
-    .sidebar-label {
-        font-size: 1rem;
+    .sidebar-group:first-child .sidebar-group-title {
+        margin-top: 0;
     }
 }

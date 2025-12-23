@@ -19,6 +19,10 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .app-container {
+    padding-top: 85px; /* Increased for potential double-line header */
+  }
+
   .main-content {
     padding: var(--spacing-md) 0;
   }

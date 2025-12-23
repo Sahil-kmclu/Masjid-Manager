@@ -94,8 +94,20 @@
 }
 
 @media (max-width: 640px) {
+    .header {
+        height: auto;
+        min-height: 70px;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
     .logo-text {
-        font-size: 1.25rem;
+        font-size: 1rem;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
+        line-height: 1.2;
     }
 
     .logo-subtitle {
@@ -103,6 +115,37 @@
     }
 
     .header-info {
-        font-size: 0.875rem;
+        display: none; /* Hide date on all mobile to save space */
+    }
+    
+    .header-right {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 0 0.75rem;
+    }
+
+    .header-left {
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .logo {
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .logo svg {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+    }
+
+    .logo-text {
+        font-size: 0.95rem;
+        width: 100%;
     }
 }

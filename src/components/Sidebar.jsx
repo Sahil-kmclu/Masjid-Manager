@@ -28,27 +28,49 @@ function Sidebar({ currentView, onNavigate, isOpen, onClose }) {
         { id: 'admin', label: 'Admin Panel', icon: '⚙️', group: 'Admin' },
     ];
 
+    // Group menu items
+    const groupedItems = menuItems.reduce((acc, item) => {
+        if (!acc[item.group]) {
+            acc[item.group] = [];
+        }
+        acc[item.group].push(item);
+        return acc;
+    }, {});
+
     return (
         <>
             <div className={`sidebar-overlay ${isOpen ? 'active' : ''}`} onClick={onClose} />
             <aside className={`sidebar ${isOpen ? 'active' : ''}`}>
                 <div className="sidebar-header-mobile">
                     <h3>Menu</h3>
-                    <button className="close-btn" onClick={onClose}>&times;</button>
+                    <button className="close-btn" onClick={onClose}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
                 <nav className="sidebar-nav">
-                    {menuItems.map((item) => (
-                    <button
-                        key={item.id}
-                        className={`sidebar-item ${currentView === item.id ? 'active' : ''}`}
-                        onClick={() => onNavigate(item.id)}
-                    >
-                        <span className="sidebar-icon">{item.icon}</span>
-                        <span className="sidebar-label">{item.label}</span>
-                    </button>
-                ))}
-            </nav>
-        </aside>
+                    {Object.entries(groupedItems).map(([group, items]) => (
+                        <div key={group} className="sidebar-group">
+                            <div className="sidebar-group-title">{group}</div>
+                            {items.map((item) => (
+                                <button
+                                    key={item.id}
+                                    className={`sidebar-item ${currentView === item.id ? 'active' : ''}`}
+                                    onClick={() => onNavigate(item.id)}
+                                >
+                                    <span className="sidebar-icon">{item.icon}</span>
+                                    <span className="sidebar-label">{item.label}</span>
+                                    {currentView === item.id && (
+                                        <div className="active-indicator" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    ))}
+                </nav>
+            </aside>
         </>
     );
 }
