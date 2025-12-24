@@ -102,7 +102,7 @@ function PendingPayments({ members, payments }) {
                 </div>
             </div>
 
-            {pendingData.length > 0 && (
+            {pendingData.length > 0 && !isReadOnly && (
                 <div className="bulk-actions">
                     <button className="btn btn-primary" onClick={sendBulkReminders}>
                         <span>📱</span>
@@ -142,22 +142,24 @@ function PendingPayments({ members, payments }) {
                                             <span className="pending-amount">₹{member.pendingAmount.toLocaleString()}</span>
                                         </td>
                                         <td>
-                                            <div className="action-buttons">
-                                                <button
-                                                    className="btn btn-sm btn-primary"
-                                                    onClick={() => sendWhatsAppReminder(member)}
-                                                    title="Send Detailed Payment Slip via WhatsApp"
-                                                >
-                                                    📄 Send Slip
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-secondary"
-                                                    onClick={() => sendSMSReminder(member)}
-                                                    title="Send SMS Reminder"
-                                                >
-                                                    💬 SMS
-                                                </button>
-                                            </div>
+                                            {!isReadOnly && (
+                                                <div className="action-buttons">
+                                                    <button
+                                                        className="btn btn-sm btn-success"
+                                                        onClick={() => sendWhatsAppReminder(member)}
+                                                        title="Send WhatsApp Reminder"
+                                                    >
+                                                        📱 WhatsApp
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-secondary"
+                                                        onClick={() => sendSMSReminder(member)}
+                                                        title="Send SMS Reminder"
+                                                    >
+                                                        💬 SMS
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

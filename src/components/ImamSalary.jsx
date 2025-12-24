@@ -250,13 +250,15 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment }) {
                                         </td>
                                         <td>{payment.notes || '-'}</td>
                                         <td>
-                                            <button
-                                                className="btn btn-sm btn-danger"
-                                                onClick={() => onDeletePayment(payment.id)}
-                                                title="Delete Payment"
-                                            >
-                                                🗑️
-                                            </button>
+                                            {!isReadOnly && (
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => onDeletePayment(payment.id)}
+                                                    title="Delete Payment"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

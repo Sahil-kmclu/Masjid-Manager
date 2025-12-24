@@ -105,9 +105,10 @@
         font-size: 1rem;
         white-space: normal;
         overflow: visible;
-        text-overflow: clip;
+        text-overflow: unset;
         max-width: none;
         line-height: 1.2;
+        word-break: break-word; /* Ensure long words break */
     }
 
     .logo-subtitle {

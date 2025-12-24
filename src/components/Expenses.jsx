@@ -210,13 +210,15 @@ function Expenses({ expenses, onDeleteExpense }) {
                                         <td>{expense.paidTo || '-'}</td>
                                         <td>{expense.paymentMethod || '-'}</td>
                                         <td>
-                                            <button
-                                                className="btn btn-sm btn-danger"
-                                                onClick={() => onDeleteExpense(expense.id)}
-                                                title="Delete Expense"
-                                            >
-                                                🗑️
-                                            </button>
+                                            {!isReadOnly && (
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => onDeleteExpense(expense.id)}
+                                                    title="Delete Expense"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

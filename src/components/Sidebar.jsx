@@ -1,8 +1,9 @@
 import './Sidebar.css';
 
-function Sidebar({ currentView, onNavigate, isOpen, onClose }) {
+function Sidebar({ currentView, onNavigate, isOpen, onClose, isReadOnly, onLogout }) {
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: '📊', group: 'General' },
+        { id: 'mosque-profile', label: 'Mosque Profile', icon: '⚙️', group: 'General' },
 
         // Member Management
         { id: 'members', label: 'Members', icon: '👥', group: 'Members' },
@@ -23,13 +24,19 @@ function Sidebar({ currentView, onNavigate, isOpen, onClose }) {
         // Expenses
         { id: 'expenses', label: 'Expenses', icon: '💸', group: 'Expenses' },
         { id: 'add-expense', label: 'Add Expense', icon: '➖', group: 'Expenses' },
-
-        // Admin
-        { id: 'admin', label: 'Admin Panel', icon: '⚙️', group: 'Admin' },
     ];
 
+    // Filter items based on read-only mode
+    const filteredItems = isReadOnly 
+        ? menuItems.filter(item => 
+            !item.id.startsWith('add-') && 
+            !item.id.startsWith('record-') &&
+            item.id !== 'mosque-profile'
+          )
+        : menuItems;
+
     // Group menu items
-    const groupedItems = menuItems.reduce((acc, item) => {
+    const groupedItems = filteredItems.reduce((acc, item) => {
         if (!acc[item.group]) {
             acc[item.group] = [];
         }
@@ -69,6 +76,17 @@ function Sidebar({ currentView, onNavigate, isOpen, onClose }) {
                             ))}
                         </div>
                     ))}
+                    
+                    <div className="sidebar-group" style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>
+                        <button
+                            className="sidebar-item"
+                            onClick={onLogout}
+                            style={{ color: '#ef4444' }}
+                        >
+                            <span className="sidebar-icon">🚪</span>
+                            <span className="sidebar-label">Logout</span>
+                        </button>
+                    </div>
                 </nav>
             </aside>
         </>

@@ -13,11 +13,11 @@ function Dashboard({ members, payments, imamSalaryPayments, mosqueIncome, expens
         });
 
         const totalCollected = currentMonthPayments.reduce(
-            (sum, p) => sum + parseFloat(p.amount), 0
+            (sum, p) => sum + (parseFloat(p.amount) || 0), 0
         );
 
         const expectedAmount = members.reduce(
-            (sum, m) => sum + parseFloat(m.monthlyAmount || 0), 0
+            (sum, m) => sum + (parseFloat(m.monthlyAmount) || 0), 0
         );
 
         const pendingAmount = expectedAmount - totalCollected;
@@ -33,7 +33,7 @@ function Dashboard({ members, payments, imamSalaryPayments, mosqueIncome, expens
         });
 
         const totalImamSalary = allImamSalary.reduce(
-            (sum, p) => sum + parseFloat(p.amount), 0
+            (sum, p) => sum + (parseFloat(p.amount) || 0), 0
         );
 
         const currentMonthImamSalary = allImamSalary.filter(p => {
@@ -43,13 +43,13 @@ function Dashboard({ members, payments, imamSalaryPayments, mosqueIncome, expens
         });
 
         const monthlyImamSalary = currentMonthImamSalary.reduce(
-            (sum, p) => sum + parseFloat(p.amount), 0
+            (sum, p) => sum + (parseFloat(p.amount) || 0), 0
         );
 
         // Mosque Income stats
         const allMosqueIncome = mosqueIncome || [];
         const totalMosqueIncome = allMosqueIncome.reduce(
-            (sum, income) => sum + parseFloat(income.amount), 0
+            (sum, income) => sum + (parseFloat(income.amount) || 0), 0
         );
 
         const currentMonthIncome = allMosqueIncome.filter(income => {
@@ -59,13 +59,13 @@ function Dashboard({ members, payments, imamSalaryPayments, mosqueIncome, expens
         });
 
         const monthlyMosqueIncome = currentMonthIncome.reduce(
-            (sum, income) => sum + parseFloat(income.amount), 0
+            (sum, income) => sum + (parseFloat(income.amount) || 0), 0
         );
 
         // Expense stats
         const allExpenses = expenses || [];
         const totalExpenses = allExpenses.reduce(
-            (sum, expense) => sum + parseFloat(expense.amount), 0
+            (sum, expense) => sum + (parseFloat(expense.amount) || 0), 0
         );
 
         const currentMonthExpenses = allExpenses.filter(expense => {
@@ -75,11 +75,12 @@ function Dashboard({ members, payments, imamSalaryPayments, mosqueIncome, expens
         });
 
         const monthlyExpenses = currentMonthExpenses.reduce(
-            (sum, expense) => sum + parseFloat(expense.amount), 0
+            (sum, expense) => sum + (parseFloat(expense.amount) || 0), 0
         );
 
         // Calculate total income and remaining balance
-        const allTimeIncome = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+        // Use all payments for all-time income, not just filtered ones if available
+        const allTimeIncome = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
         const totalIncome = allTimeIncome + totalImamSalary + totalMosqueIncome;
         const remainingBalance = totalIncome - totalExpenses;
 

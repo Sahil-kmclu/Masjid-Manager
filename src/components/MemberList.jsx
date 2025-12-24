@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import './MemberList.css';
-import { generatePaymentReceipt, generatePendingSlip, sendWhatsAppMessage, calculatePendingMonths } from '../utils/receiptGenerator';
+import { generatePaymentReceipt, generatePendingSlip, sendWhatsAppMessage, calculatePendingMonths, generatePendingSlipPDF } from '../utils/receiptGenerator';
 
-function MemberList({ members, payments, imamSalaryPayments, onUpdateMember, onDeleteMember, onDeletePayment, onDeleteImamSalaryPayment }) {
+function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUpdateMember, onDeleteMember, onDeletePayment, onDeleteImamSalaryPayment, isReadOnly }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedMember, setSelectedMember] = useState(null);
     const [editMode, setEditMode] = useState(false);
@@ -16,13 +16,14 @@ function MemberList({ members, payments, imamSalaryPayments, onUpdateMember, onD
     }, [members, searchTerm]);
 
     const getMemberPayments = (memberId) => {
-        return payments.filter(p => p.memberId === memberId)
+        return (payments || []).filter(p => p && p.memberId === memberId)
             .sort((a, b) => new Date(b.month) - new Date(a.month));
     };
 
     const getMemberImamSalaryPayments = (memberId) => {
         const sep2020 = new Date('2020-09-01');
         return (imamSalaryPayments || []).filter(p => {
+            if (!p || !p.month) return false;
             const paymentDate = new Date(p.month + '-01');
             return p.memberId === memberId && paymentDate >= sep2020;
         }).sort((a, b) => new Date(b.month) - new Date(a.month));
@@ -33,8 +34,8 @@ function MemberList({ members, payments, imamSalaryPayments, onUpdateMember, onD
         const memberImamSalaryList = getMemberImamSalaryPayments(member.id);
 
         // Calculate total paid from BOTH general payments AND Imam salary payments
-        const totalFromGeneralPayments = memberPaymentsList.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-        const totalFromImamSalary = memberImamSalaryList.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+        const totalFromGeneralPayments = memberPaymentsList.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        const totalFromImamSalary = memberImamSalaryList.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
         const totalPaid = totalFromGeneralPayments + totalFromImamSalary;
 
         // Monthly contribution
@@ -89,6 +90,31 @@ function MemberList({ members, payments, imamSalaryPayments, onUpdateMember, onD
             status,
             statusColor
         };
+    };
+
+    const handleDownloadSlip = (member) => {
+        try {
+            const memberPayments = getMemberPayments(member.id);
+            const memberImamSalary = getMemberImamSalaryPayments(member.id);
+            const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary);
+            
+            // Generate PDF
+            generatePendingSlipPDF(member, pendingMonthsList);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert(`Failed to generate PDF: ${error.message || error}`);
+        }
+    };
+
+    const handleShareWhatsApp = (member) => {
+        const memberPayments = getMemberPayments(member.id);
+        const memberImamSalary = getMemberImamSalaryPayments(member.id);
+        const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary);
+        
+        const currentMonthStr = new Date().toISOString().slice(0, 7);
+        const slipText = generatePendingSlip(member, currentMonthStr, pendingMonthsList);
+
+        sendWhatsAppMessage(member.phone, slipText);
     };
 
     const handleEdit = (member) => {
@@ -249,260 +275,37 @@ function MemberList({ members, payments, imamSalaryPayments, onUpdateMember, onD
                                                 </td>
                                                 <td>
                                                     <div className="action-buttons">
-                                                        <button
-                                                            className="btn btn-sm btn-secondary"
-                                                            onClick={() => setSelectedMember(isExpanded ? null : member.id)}
-                                                            title="View Details"
+                                                        <button 
+                                                            className="action-btn view-btn" 
+                                                            title="View Slip / Stats"
+                                                            onClick={() => setSelectedMember(member)}
+                                                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
                                                         >
-                                                            {isExpanded ? '▲' : '▼'}
+                                                            📄
                                                         </button>
-                                                        <button
-                                                            className="btn btn-sm btn-secondary"
-                                                            onClick={() => handleEdit(member)}
-                                                            title="Edit Member"
-                                                        >
-                                                            ✏️
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-sm btn-warning"
-                                                            onClick={() => handleSendPendingSlip(member)}
-                                                            title="Send Pending Payment Slip"
-                                                        >
-                                                            📄 Slip
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-sm btn-danger"
-                                                            onClick={() => onDeleteMember(member.id)}
-                                                            title="Delete Member"
-                                                        >
-                                                            🗑️
-                                                        </button>
+                                                        {!isReadOnly && (
+                                                            <>
+                                                                <button 
+                                                                    className="action-btn edit-btn" 
+                                                                    onClick={() => handleEdit(member)}
+                                                                    title="Edit Member"
+                                                                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
+                                                                >
+                                                                    ✏️
+                                                                </button>
+                                                                <button 
+                                                                    className="action-btn delete-btn" 
+                                                                    onClick={() => onDeleteMember(member.id)}
+                                                                    title="Delete Member"
+                                                                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
+                                                                >
+                                                                    🗑️
+                                                                </button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
-                                            {isExpanded && (
-                                                <tr className="member-details-row">
-                                                    <td colSpan="6">
-                                                        <div className="member-details">
-                                                            <div className="details-section">
-                                                                <h4>Member Information</h4>
-                                                                <div className="details-grid">
-                                                                    {member.address && (
-                                                                        <div className="detail-item">
-                                                                            <span className="detail-label">Address:</span>
-                                                                            <span className="detail-value">{member.address}</span>
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="detail-item">
-                                                                        <span className="detail-label">Joined:</span>
-                                                                        <span className="detail-value">
-                                                                            {new Date(member.createdAt).toLocaleDateString()}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Monthly Payment Status */}
-                                                            <div className="details-section" style={{ background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)', border: '2px solid var(--color-primary)' }}>
-                                                                <h4>📅 Monthly Payment Status</h4>
-                                                                {(() => {
-                                                                    const monthlyStats = getMemberMonthlyStats(member);
-
-                                                                    return (
-                                                                        <>
-                                                                            <div className="detail-item">
-                                                                                <span className="detail-label">Monthly Contribution:</span>
-                                                                                <span className="detail-value" style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>₹{member.monthlyAmount}</span>
-                                                                            </div>
-                                                                            <div className="detail-item">
-                                                                                <span className="detail-label">Total Amount Paid:</span>
-                                                                                <span className="detail-value" style={{ fontWeight: 'bold', color: 'var(--color-success)' }}>₹{monthlyStats.totalPaid.toLocaleString()}</span>
-                                                                            </div>
-                                                                            <div className="detail-item" style={{ background: '#fef3c7', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-md)', border: '2px solid #f59e0b' }}>
-                                                                                <span className="detail-label" style={{ fontWeight: 'bold' }}>💰 Remaining Amount (Current Month तक):</span>
-                                                                                <span className="detail-value" style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#d97706' }}>₹{monthlyStats.remainingAmount.toLocaleString()}</span>
-                                                                            </div>
-
-                                                                            <div style={{ margin: 'var(--spacing-md) 0', padding: 'var(--spacing-md)', background: 'white', borderRadius: 'var(--radius-md)' }}>
-                                                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
-                                                                                    <div style={{ textAlign: 'center', padding: 'var(--spacing-sm)', background: '#10b98110', borderRadius: 'var(--radius-md)' }}>
-                                                                                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981' }}>✅ {monthlyStats.monthsPaid}</div>
-                                                                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>Months Paid</div>
-                                                                                    </div>
-                                                                                    <div style={{ textAlign: 'center', padding: 'var(--spacing-sm)', background: '#f59e0b10', borderRadius: 'var(--radius-md)' }}>
-                                                                                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>⏰ {monthlyStats.pendingMonths}</div>
-                                                                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>Months Pending</div>
-                                                                                    </div>
-                                                                                    <div style={{ textAlign: 'center', padding: 'var(--spacing-sm)', background: '#667eea10', borderRadius: 'var(--radius-md)' }}>
-                                                                                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#667eea' }}>📊 {monthlyStats.expectedMonths}</div>
-                                                                                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>Expected (to date)</div>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                {/* Progress Bar */}
-                                                                                <div style={{ marginTop: 'var(--spacing-md)' }}>
-                                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '0.875rem' }}>
-                                                                                        <span style={{ fontWeight: '600' }}>Payment Progress</span>
-                                                                                        <span style={{ fontWeight: 'bold', color: monthlyStats.statusColor }}>{monthlyStats.completionPercentage}%</span>
-                                                                                    </div>
-                                                                                    <div style={{
-                                                                                        width: '100%',
-                                                                                        height: '24px',
-                                                                                        background: '#e5e7eb',
-                                                                                        borderRadius: '12px',
-                                                                                        overflow: 'hidden',
-                                                                                        position: 'relative'
-                                                                                    }}>
-                                                                                        <div style={{
-                                                                                            width: `${monthlyStats.completionPercentage}%`,
-                                                                                            height: '100%',
-                                                                                            background: `linear-gradient(90deg, ${monthlyStats.statusColor} 0%, ${monthlyStats.statusColor}dd 100%)`,
-                                                                                            transition: 'width 0.3s ease',
-                                                                                            display: 'flex',
-                                                                                            alignItems: 'center',
-                                                                                            justifyContent: 'flex-end',
-                                                                                            paddingRight: '8px'
-                                                                                        }}>
-                                                                                            {monthlyStats.completionPercentage > 10 && (
-                                                                                                <span style={{ color: 'white', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                                                                                                    {monthlyStats.monthsPaid} / {monthlyStats.expectedMonths}
-                                                                                                </span>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                {/* Status Badge */}
-                                                                                <div style={{
-                                                                                    marginTop: 'var(--spacing-md)',
-                                                                                    padding: 'var(--spacing-sm)',
-                                                                                    background: `${monthlyStats.statusColor}15`,
-                                                                                    border: `2px solid ${monthlyStats.statusColor}`,
-                                                                                    borderRadius: 'var(--radius-md)',
-                                                                                    textAlign: 'center',
-                                                                                    fontWeight: 'bold',
-                                                                                    color: monthlyStats.statusColor,
-                                                                                    fontSize: '1rem'
-                                                                                }}>
-                                                                                    {monthlyStats.status}
-                                                                                </div>
-                                                                            </div>
-                                                                        </>
-                                                                    );
-                                                                })()}
-                                                            </div>
-
-                                                            <div className="details-section">
-                                                                <h4>Payment History ({memberPayments.length})</h4>
-                                                                {memberPayments.length === 0 ? (
-                                                                    <p className="text-muted">No payments recorded yet</p>
-                                                                ) : (
-                                                                    <div className="payment-history">
-                                                                        {memberPayments.map((payment) => (
-                                                                            <div key={payment.id} className="payment-record">
-                                                                                <div>
-                                                                                    <div className="payment-month">
-                                                                                        {new Date(payment.month + '-01').toLocaleDateString('en-US', {
-                                                                                            month: 'long',
-                                                                                            year: 'numeric'
-                                                                                        })}
-                                                                                    </div>
-                                                                                    <div className="payment-meta">
-                                                                                        Paid on: {new Date(payment.paymentDate).toLocaleDateString()}
-                                                                                    </div>
-                                                                                    {payment.notes && (
-                                                                                        <div className="payment-notes">Note: {payment.notes}</div>
-                                                                                    )}
-                                                                                </div>
-                                                                                <div className="payment-record-actions">
-                                                                                    <span className="payment-record-amount">₹{payment.amount}</span>
-                                                                                    <button
-                                                                                        className="btn btn-sm btn-success"
-                                                                                        onClick={() => {
-                                                                                            const receipt = generatePaymentReceipt(member, payment);
-                                                                                            sendWhatsAppMessage(member.phone, receipt);
-                                                                                        }}
-                                                                                        title="Send Receipt via WhatsApp"
-                                                                                    >
-                                                                                        📱 Receipt
-                                                                                    </button>
-                                                                                    <button
-                                                                                        className="btn btn-sm btn-danger"
-                                                                                        onClick={() => onDeletePayment(payment.id)}
-                                                                                        title="Delete Payment"
-                                                                                    >
-                                                                                        ✕
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="details-section">
-                                                                <h4>🕌 Imam Salary History (From Sep 2020)</h4>
-                                                                {(() => {
-                                                                    const memberImamSalary = getMemberImamSalaryPayments(member.id);
-                                                                    const totalImamSalary = memberImamSalary.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-
-                                                                    return (
-                                                                        <>
-                                                                            {memberImamSalary.length > 0 && (
-                                                                                <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                                                                                    <div className="detail-item" style={{ background: 'var(--color-background)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-sm)' }}>
-                                                                                        <span className="detail-label">Total Payments:</span>
-                                                                                        <span className="detail-value" style={{ fontWeight: 'bold' }}>{memberImamSalary.length}</span>
-                                                                                    </div>
-                                                                                    <div className="detail-item" style={{ background: 'var(--color-background)', padding: 'var(--spacing-sm)', borderRadius: 'var(--radius-md)' }}>
-                                                                                        <span className="detail-label">Total Amount Contributed:</span>
-                                                                                        <span className="detail-value" style={{ fontWeight: 'bold', color: 'var(--color-primary)' }}>₹{totalImamSalary.toLocaleString()}</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )}
-
-                                                                            {memberImamSalary.length === 0 ? (
-                                                                                <p className="text-muted">No Imam salary payments recorded yet</p>
-                                                                            ) : (
-                                                                                <div className="payment-history">
-                                                                                    {memberImamSalary.map((payment) => (
-                                                                                        <div key={payment.id} className="payment-record" style={{ borderLeft: '3px solid var(--color-primary)' }}>
-                                                                                            <div>
-                                                                                                <div className="payment-month">
-                                                                                                    {new Date(payment.month + '-01').toLocaleDateString('en-US', {
-                                                                                                        month: 'long',
-                                                                                                        year: 'numeric'
-                                                                                                    })}
-                                                                                                </div>
-                                                                                                <div className="payment-meta">
-                                                                                                    Paid on: {new Date(payment.paymentDate).toLocaleDateString()}
-                                                                                                </div>
-                                                                                                {payment.notes && (
-                                                                                                    <div className="payment-notes">Note: {payment.notes}</div>
-                                                                                                )}
-                                                                                            </div>
-                                                                                            <div className="payment-record-actions">
-                                                                                                <span className="payment-record-amount">₹{payment.amount}</span>
-                                                                                                <button
-                                                                                                    className="btn btn-sm btn-danger"
-                                                                                                    onClick={() => onDeleteImamSalaryPayment(payment.id)}
-                                                                                                    title="Delete Imam Salary Payment"
-                                                                                                >
-                                                                                                    ✕
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    ))}
-                                                                                </div>
-                                                                            )}
-                                                                        </>
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            )}
                                         </React.Fragment>
                                     );
                                 })
@@ -511,6 +314,117 @@ function MemberList({ members, payments, imamSalaryPayments, onUpdateMember, onD
                     </table>
                 </div>
             </div>
+
+            {selectedMember && !editMode && (
+                <div className="modal-overlay" onClick={() => setSelectedMember(null)}>
+                    <div className="modal-content large-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Member Statistics</h3>
+                            <button className="close-btn" onClick={() => setSelectedMember(null)}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            {(() => {
+                                const stats = getMemberMonthlyStats(selectedMember);
+                                const paymentsList = getMemberPayments(selectedMember.id);
+                                const imamSalaryList = getMemberImamSalaryPayments(selectedMember.id);
+                                
+                                return (
+                                    <div className="member-slip">
+                                        <div className="slip-header">
+                                            <h4>{selectedMember.name}</h4>
+                                            <p>{selectedMember.phone}</p>
+                                        </div>
+
+                                        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', marginBottom: '20px' }}>
+                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Monthly Contribution</label>
+                                                <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f8fafc' }}>₹{selectedMember.monthlyAmount}</span>
+                                            </div>
+                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Total Paid</label>
+                                                <span className="success-text" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ade80' }}>₹{stats.totalPaid}</span>
+                                            </div>
+                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Pending Amount</label>
+                                                <span className="danger-text" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f87171' }}>₹{stats.remainingAmount}</span>
+                                            </div>
+                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Status</label>
+                                                <span style={{ color: stats.statusColor, fontWeight: 'bold' }}>
+                                                    {stats.status}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="progress-section" style={{ marginBottom: '20px' }}>
+                                            <label style={{ display: 'block', marginBottom: '5px' }}>Payment Progress ({stats.monthsPaid} / {stats.expectedMonths} months)</label>
+                                            <div className="progress-bar" style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                                <div 
+                                                    className="progress-fill" 
+                                                    style={{ 
+                                                        width: `${stats.completionPercentage}%`,
+                                                        backgroundColor: stats.statusColor,
+                                                        height: '100%'
+                                                    }}
+                                                ></div>
+                                            </div>
+                                        </div>
+
+                                        <div className="payment-history-section">
+                                            <h5 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '5px', marginBottom: '10px' }}>Recent Payments</h5>
+                                            <div className="history-list" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                                                {paymentsList.length > 0 ? (
+                                                    paymentsList.slice(0, 5).map(p => (
+                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                                            <span>{new Date(p.month + '-01').toLocaleDateString('default', { month: 'long', year: 'numeric' })}</span>
+                                                            <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="no-data" style={{ color: '#94a3b8', fontStyle: 'italic' }}>No general donation records</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="payment-history-section" style={{ marginTop: '20px' }}>
+                                            <h5 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '5px', marginBottom: '10px' }}>Imam Salary Payments</h5>
+                                            <div className="history-list" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                                                {imamSalaryList.length > 0 ? (
+                                                    imamSalaryList.slice(0, 5).map(p => (
+                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                                            <span>{new Date(p.month + '-01').toLocaleDateString('default', { month: 'long', year: 'numeric' })}</span>
+                                                            <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="no-data" style={{ color: '#94a3b8', fontStyle: 'italic' }}>No imam salary records</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="slip-actions" style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                                            <button 
+                                                className="btn btn-secondary"
+                                                onClick={() => handleDownloadSlip(selectedMember)}
+                                                style={{ flex: 1 }}
+                                            >
+                                                Download Slip 📄
+                                            </button>
+                                            <button 
+                                                className="btn btn-success"
+                                                onClick={() => handleShareWhatsApp(selectedMember)}
+                                                style={{ flex: 1, background: '#25D366', color: 'white', border: 'none' }}
+                                            >
+                                                Share on WhatsApp 📱
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

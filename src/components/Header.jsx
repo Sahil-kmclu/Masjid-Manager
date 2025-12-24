@@ -1,6 +1,6 @@
 import './Header.css';
 
-function Header({ onToggleSidebar }) {
+function Header({ onToggleSidebar, mosqueName }) {
     return (
         <header className="header">
             <div className="container header-container">
@@ -22,7 +22,7 @@ function Header({ onToggleSidebar }) {
                             </defs>
                         </svg>
                         <div>
-                            <h1 className="logo-text">Churaman Chak Bhatwaliya Masjid</h1>
+                            <h1 className="logo-text">{mosqueName || 'Masjid Manager'}</h1>
                             <p className="logo-subtitle">Donation Management System</p>
                         </div>
                     </div>

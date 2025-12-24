@@ -1,3 +1,6 @@
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 // Utility functions for generating payment receipts and slips
 
 /**
@@ -166,4 +169,80 @@ export const calculatePendingMonths = (generalPayments, imamSalaryPayments = [])
 
     // Return only months that haven't been paid
     return allMonths.filter(m => !allPaidMonths.includes(m));
+};
+
+/**
+ * Generate and download a PDF pending slip
+ */
+export const generatePendingSlipPDF = (member, pendingMonths = []) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(22, 163, 74); // Green color
+    doc.text("CHURAMAN CHAK BHATWALIYA MASJID", 105, 20, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text("Donation Management System", 105, 28, { align: "center" });
+    
+    doc.setLineWidth(0.5);
+    doc.line(20, 35, 190, 35);
+
+    // Title
+    doc.setFontSize(18);
+    doc.setTextColor(0);
+    doc.text("Payment Reminder Slip", 105, 50, { align: "center" });
+
+    // Member Details
+    doc.setFontSize(12);
+    doc.text(`Member Name: ${member.name}`, 20, 70);
+    doc.text(`Phone: ${member.phone}`, 20, 80);
+    doc.text(`Monthly Contribution: ₹${member.monthlyAmount}`, 20, 90);
+    
+    doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}`, 140, 70);
+
+    // Table
+    const tableColumn = ["#", "Month", "Amount"];
+    const tableRows = [];
+    let totalPending = 0;
+
+    pendingMonths.forEach((month, index) => {
+        const monthName = new Date(month + '-01').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+        const amount = parseFloat(member.monthlyAmount);
+        totalPending += amount;
+        tableRows.push([index + 1, monthName, `Rs ${amount.toFixed(2)}`]);
+    });
+
+    // Add Total Row
+    tableRows.push(['', 'Total Pending Amount', `Rs ${totalPending.toFixed(2)}`]);
+
+    autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 100,
+        theme: 'grid',
+        headStyles: { fillColor: [22, 163, 74] },
+        columnStyles: {
+            0: { cellWidth: 20 },
+            2: { cellWidth: 40, halign: 'right' }
+        },
+        didParseCell: function (data) {
+            // Bold the last row (Total)
+            if (data.row.raw[1] === 'Total Pending Amount') {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [240, 240, 240];
+            }
+        }
+    });
+
+    // Footer
+    const finalY = doc.lastAutoTable.finalY + 20;
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("This is a computer-generated slip and does not require a signature.", 105, finalY, { align: "center" });
+    doc.text("Please submit your dues at your earliest convenience. JazakAllah Khair!", 105, finalY + 7, { align: "center" });
+
+    // Save
+    doc.save(`${member.name}_Pending_Slip_${new Date().toISOString().slice(0, 10)}.pdf`);
 };

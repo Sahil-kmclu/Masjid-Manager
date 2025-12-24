@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import './MosqueIncome.css';
 
-function MosqueIncome({ mosqueIncome, onDeleteIncome }) {
+function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
 
