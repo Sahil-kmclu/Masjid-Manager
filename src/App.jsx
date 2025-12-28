@@ -56,6 +56,46 @@ function App() {
     }
   }, []);
 
+  // Handle navigation history (Mobile Back Button Fix & Web Query Params)
+  useEffect(() => {
+    // Check URL params for initial view
+    const params = new URLSearchParams(window.location.search);
+    const initialView = params.get('view') || 'dashboard';
+    
+    // Ensure we have a history state on initial load
+    if (!window.history.state) {
+      window.history.replaceState({ view: initialView }, '', `?view=${initialView}`);
+      if (initialView !== 'dashboard') {
+        setCurrentView(initialView);
+      }
+    } else if (window.history.state.view && window.history.state.view !== currentView) {
+        // Sync state with current view if mismatched
+        setCurrentView(window.history.state.view);
+    }
+
+    const handlePopState = (event) => {
+      if (event.state && event.state.view) {
+        setCurrentView(event.state.view);
+      } else {
+        // If we pop to a state without view, check URL or default
+        const params = new URLSearchParams(window.location.search);
+        const view = params.get('view') || 'dashboard';
+        setCurrentView(view);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleNavigate = (view) => {
+    setCurrentView(view);
+    const newUrl = view === 'dashboard' ? '/' : `?view=${view}`;
+    window.history.pushState({ view }, '', newUrl);
+    window.scrollTo(0, 0);
+    closeSidebar();
+  };
+
   // Save current user
   useEffect(() => {
     if (user) {
@@ -592,8 +632,15 @@ function App() {
             isReadOnly={isReadOnly}
           />
         );
-      case 'record-imam-salary':
-        return <RecordImamSalary members={members} imamSalaryPayments={imamSalaryPayments} onAddPayment={addImamSalaryPayment} />;
+      case 'record-salary':
+        return (
+          <RecordImamSalary
+            members={members}
+            imams={imams}
+            onRecordSalary={addImamSalaryPayment}
+            onCancel={() => handleNavigate('imam-salary')}
+          />
+        );
       case 'pay-imam':
         return (
           <PayImam
