@@ -618,7 +618,7 @@ function App() {
           />
         );
       case 'add-member':
-        return <AddMember onAddMember={addMember} onCancel={() => setCurrentView('members')} />;
+        return <AddMember onAddMember={addMember} onCancel={() => window.history.back()} />;
       case 'record-payment':
         return <RecordPayment members={members} payments={payments} onAddPayment={addPayment} />;
       case 'pending':
@@ -632,13 +632,13 @@ function App() {
             isReadOnly={isReadOnly}
           />
         );
-      case 'record-salary':
+      case 'record-imam-salary':
         return (
           <RecordImamSalary
             members={members}
-            imams={imams}
-            onRecordSalary={addImamSalaryPayment}
-            onCancel={() => handleNavigate('imam-salary')}
+            imamSalaryPayments={imamSalaryPayments}
+            onAddPayment={addImamSalaryPayment}
+            onCancel={() => window.history.back()}
           />
         );
       case 'pay-imam':
@@ -696,14 +696,12 @@ function App() {
         mosqueName={user.role === 'super_admin' ? 'Super Admin Panel' : user.name}
         onToggleTheme={toggleTheme} 
         currentTheme={theme} 
+        onNavigate={handleNavigate}
       />
       <div className="app-container">
         <Sidebar 
           currentView={currentView} 
-          onNavigate={(view) => {
-            setCurrentView(view);
-            closeSidebar();
-          }} 
+          onNavigate={handleNavigate} 
           isOpen={isSidebarOpen}
           onClose={closeSidebar}
           isReadOnly={isReadOnly}

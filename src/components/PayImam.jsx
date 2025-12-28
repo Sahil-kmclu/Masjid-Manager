@@ -243,6 +243,7 @@ function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDele
                         <h3>{t('Registered Imams')}</h3>
                         {!isReadOnly && !showImamForm && (
                             <button className="btn btn-primary" onClick={() => {
+                                window.history.pushState({ view: 'pay-imam', modal: 'add-imam' }, '', '');
                                 setEditingImam(null);
                                 setImamFormData({
                                     name: '',
@@ -262,7 +263,7 @@ function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDele
                         <div className="card mb-4">
                             <div className="card-header">
                                 <h3>{editingImam ? t('Edit Imam Details') : t('Register New Imam')}</h3>
-                                <button className="btn btn-sm btn-secondary" onClick={() => setShowImamForm(false)}>✕</button>
+                                <button className="btn btn-sm btn-secondary" onClick={() => window.history.back()}>✕</button>
                             </div>
                             <div className="card-body">
                                 <form onSubmit={handleImamSubmit}>

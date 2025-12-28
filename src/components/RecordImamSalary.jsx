@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import './RecordPayment.css';
 
-function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
+function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment, onCancel }) {
     const { t } = useTranslation();
     const currentDate = new Date();
     const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
@@ -225,6 +225,11 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                                 <span>💰</span>
                                 {t('Record Salary Payment')}
                             </button>
+                            {onCancel && (
+                                <button type="button" className="btn btn-secondary" onClick={onCancel}>
+                                    {t('Cancel')}
+                                </button>
+                            )}
                         </div>
                     </form>
                 </div>

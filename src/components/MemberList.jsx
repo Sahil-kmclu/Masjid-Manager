@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './MemberList.css';
 import { generatePaymentReceipt, generatePendingSlip, sendWhatsAppMessage, calculatePendingMonths, generatePendingSlipPDF } from '../utils/receiptGenerator';
@@ -9,6 +9,17 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     const [selectedMember, setSelectedMember] = useState(null);
     const [editMode, setEditMode] = useState(false);
     const [editData, setEditData] = useState({});
+
+    // Handle back button for modals
+    useEffect(() => {
+        const handlePopState = () => {
+            setEditMode(false);
+            setEditData({});
+            setSelectedMember(null);
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     const filteredMembers = useMemo(() => {
         return members.filter(member =>
@@ -122,19 +133,22 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     const handleEdit = (member) => {
         setEditMode(true);
         setEditData(member);
+        window.history.pushState({ modal: 'edit-member' }, '', '');
+    };
+
+    const handleViewDetails = (member) => {
+        setSelectedMember(member);
+        window.history.pushState({ modal: 'view-member' }, '', '');
     };
 
     const handleSaveEdit = () => {
         onUpdateMember(editData.id, editData);
-        setEditMode(false);
-        setEditData({});
-        setSelectedMember(null);
         alert(t('Member updated successfully!'));
+        window.history.back();
     };
 
     const handleCancelEdit = () => {
-        setEditMode(false);
-        setEditData({});
+        window.history.back();
     };
 
     const handleSendPendingSlip = (member) => {
@@ -289,7 +303,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                         <button 
                                                             className="action-btn view-btn" 
                                                             title={t("View Slip / Stats")}
-                                                            onClick={() => setSelectedMember(member)}
+                                                            onClick={() => handleViewDetails(member)}
                                                             style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
                                                         >
                                                             📄
@@ -327,11 +341,11 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
             </div>
 
             {selectedMember && !editMode && (
-                <div className="modal-overlay" onClick={() => setSelectedMember(null)}>
+                <div className="modal-overlay" onClick={() => window.history.back()}>
                     <div className="modal-content large-modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>{t('Member Statistics')}</h3>
-                            <button className="close-btn" onClick={() => setSelectedMember(null)}>×</button>
+                            <button className="close-btn" onClick={() => window.history.back()}>×</button>
                         </div>
                         <div className="modal-body">
                             {(() => {

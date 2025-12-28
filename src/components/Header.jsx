@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import './Header.css';
 
-function Header({ onToggleSidebar, mosqueName, onToggleTheme, currentTheme }) {
+function Header({ onToggleSidebar, mosqueName, onToggleTheme, currentTheme, onNavigate }) {
     const { t } = useTranslation();
     return (
         <header className="header">
@@ -12,7 +12,7 @@ function Header({ onToggleSidebar, mosqueName, onToggleTheme, currentTheme }) {
                             <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     </button>
-                    <div className="logo">
+                    <div className="logo" onClick={() => onNavigate && onNavigate('dashboard')} style={{ cursor: 'pointer' }}>
                         <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect width="40" height="40" rx="12" fill="url(#gradient)" />
                             <path d="M20 10L12 18V30H16V24H24V30H28V18L20 10Z" fill="white" />
