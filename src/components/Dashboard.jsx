@@ -1,12 +1,15 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Dashboard.css';
 
-function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqueIncome = [], expenses = [], isReadOnly }) {
+function Dashboard({ members = [], payments = [], imamSalaryPayments = [], imamPayouts = [], mosqueIncome = [], expenses = [], isReadOnly }) {
+    const { t } = useTranslation();
     const stats = useMemo(() => {
         // Ensure all inputs are arrays to prevent crashes
         const safeMembers = Array.isArray(members) ? members : [];
         const safePayments = Array.isArray(payments) ? payments : [];
         const safeImamSalary = Array.isArray(imamSalaryPayments) ? imamSalaryPayments : [];
+        const safeImamPayouts = Array.isArray(imamPayouts) ? imamPayouts : [];
         const safeMosqueIncome = Array.isArray(mosqueIncome) ? mosqueIncome : [];
         const safeExpenses = Array.isArray(expenses) ? expenses : [];
 
@@ -24,7 +27,15 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
             (sum, p) => sum + (parseFloat(p?.amount) || 0), 0
         );
 
-        const expectedAmount = safeMembers.reduce(
+        const currentMonthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+
+        // Filter members who have joined by this month
+        const activeMembers = safeMembers.filter(m => {
+            if (!m.joiningDate) return true; // Legacy members assumed active
+            return m.joiningDate.slice(0, 7) <= currentMonthKey;
+        });
+
+        const expectedAmount = activeMembers.reduce(
             (sum, m) => sum + (parseFloat(m?.monthlyAmount) || 0), 0
         );
 
@@ -59,7 +70,7 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
         );
 
         const paidMemberIds = new Set(allCurrentMonthPayments.map(p => p?.memberId).filter(Boolean));
-        const pendingMembers = safeMembers.filter(m => m && !paidMemberIds.has(m.id));
+        const pendingMembers = activeMembers.filter(m => m && !paidMemberIds.has(m.id));
         const pendingAmount = expectedAmount - totalCollectedCombined;
 
         // Mosque Income stats
@@ -94,11 +105,21 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
             (sum, expense) => sum + (parseFloat(expense?.amount) || 0), 0
         );
 
+        // Calculate Imam Payouts (Expenses for Imam Salary)
+        const totalImamPayouts = safeImamPayouts.reduce(
+            (sum, p) => sum + (parseFloat(p?.amount) || 0), 0
+        );
+
+        // Calculate Net Imam Salary Fund (Collected - Paid)
+        const netImamSalary = totalImamSalary - totalImamPayouts;
+
         // Calculate total income and remaining balance
         // Use all payments for all-time income, not just filtered ones if available
         const allTimeIncome = safePayments.reduce((sum, p) => sum + parseFloat(p?.amount || 0), 0);
         const totalIncome = allTimeIncome + totalImamSalary + totalMosqueIncome;
-        const remainingBalance = totalIncome - totalExpenses;
+        
+        // Remaining Balance = Total Income - General Expenses - Imam Payouts
+        const remainingBalance = totalIncome - totalExpenses - totalImamPayouts;
 
         return {
             totalMembers: safeMembers.length,
@@ -111,6 +132,7 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                 ? ((totalCollectedCombined / expectedAmount) * 100).toFixed(1)
                 : 0,
             totalImamSalary,
+            netImamSalary,
             monthlyImamSalary,
             totalMosqueIncome,
             monthlyMosqueIncome,
@@ -119,11 +141,12 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
             totalIncome,
             remainingBalance,
         };
-    }, [members, payments, imamSalaryPayments, mosqueIncome, expenses]);
+    }, [members, payments, imamSalaryPayments, imamPayouts, mosqueIncome, expenses]);
 
     const yearlyAnalytics = useMemo(() => {
         const safePayments = Array.isArray(payments) ? payments : [];
         const safeImamSalary = Array.isArray(imamSalaryPayments) ? imamSalaryPayments : [];
+        const safeImamPayouts = Array.isArray(imamPayouts) ? imamPayouts : [];
         const safeMosqueIncome = Array.isArray(mosqueIncome) ? mosqueIncome : [];
         const safeExpenses = Array.isArray(expenses) ? expenses : [];
 
@@ -158,11 +181,19 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
             const totalIncome = monthlyPayments + monthlyImamSalary + monthlyMosqueIncome;
 
             // Calculate Expense for this month
-            const monthlyExpenses = safeExpenses.filter(e => {
+            const monthlyGeneralExpenses = safeExpenses.filter(e => {
                 if (!e || !e.date) return false;
                 const eDate = new Date(e.date);
                 return eDate.getMonth() === month && eDate.getFullYear() === year;
             }).reduce((sum, e) => sum + (parseFloat(e?.amount) || 0), 0);
+
+            const monthlyImamPayouts = safeImamPayouts.filter(p => {
+                if (!p || !p.month) return false;
+                const pDate = new Date(p.month + '-01');
+                return pDate.getMonth() === month && pDate.getFullYear() === year;
+            }).reduce((sum, p) => sum + (parseFloat(p?.amount) || 0), 0);
+
+            const monthlyExpenses = monthlyGeneralExpenses + monthlyImamPayouts;
 
             last12Months.push({
                 label,
@@ -171,14 +202,14 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
             });
         }
         return last12Months;
-    }, [payments, imamSalaryPayments, mosqueIncome, expenses]);
+    }, [payments, imamSalaryPayments, imamPayouts, mosqueIncome, expenses]);
 
     const maxVal = Math.max(...yearlyAnalytics.map(d => Math.max(d.income, d.expense)), 100); // Avoid divide by zero
 
     return (
         <div className="dashboard fade-in">
             <div className="dashboard-header">
-                <h2>Dashboard Overview</h2>
+                <h2>{t('Dashboard Overview')}</h2>
                 <p className="text-muted">
                     {new Date().toLocaleDateString('en-US', {
                         month: 'long',
@@ -193,7 +224,7 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                         👥
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Members</div>
+                        <div className="stat-label">{t('Total Members')}</div>
                         <div className="stat-value">{stats.totalMembers}</div>
                     </div>
                 </div>
@@ -203,7 +234,7 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                         ✓
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Paid This Month</div>
+                        <div className="stat-label">{t('Paid This Month')}</div>
                         <div className="stat-value">{stats.paidMembers}</div>
                     </div>
                 </div>
@@ -213,7 +244,7 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                         ⏰
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Pending Members</div>
+                        <div className="stat-label">{t('Pending Members')}</div>
                         <div className="stat-value">{stats.pendingMembers}</div>
                     </div>
                 </div>
@@ -223,24 +254,34 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                         📊
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Completion Rate</div>
+                        <div className="stat-label">{t('Completion Rate')}</div>
                         <div className="stat-value">{stats.completionRate}%</div>
                     </div>
                 </div>
             </div>
 
             {/* Additional Income Stats */}
-            <div className="grid grid-cols-2" style={{ marginTop: 'var(--spacing-lg)' }}>
+            <div className="grid grid-cols-3" style={{ marginTop: 'var(--spacing-lg)' }}>
                 <div className="stat-card card">
                     <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
                         🕌
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Imam Salary (Total)</div>
+                        <div className="stat-label">{t('Total Imam Salary Collected')}</div>
                         <div className="stat-value">₹{stats.totalImamSalary.toLocaleString()}</div>
                         <div className="stat-meta" style={{ fontSize: '0.875rem', color: 'var(--color-text-light)', marginTop: '4px' }}>
-                            This Month: ₹{stats.monthlyImamSalary.toLocaleString()}
+                            {t('This Month')}: ₹{stats.monthlyImamSalary.toLocaleString()}
                         </div>
+                    </div>
+                </div>
+
+                <div className="stat-card card">
+                    <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)' }}>
+                        ⚖️
+                    </div>
+                    <div className="stat-content">
+                        <div className="stat-label">{t('Imam Salary Fund Balance')}</div>
+                        <div className="stat-value">₹{stats.netImamSalary.toLocaleString()}</div>
                     </div>
                 </div>
 
@@ -249,10 +290,10 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                         📊
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Mosque Income (Total)</div>
+                        <div className="stat-label">{t('Total Mosque Income')}</div>
                         <div className="stat-value">₹{stats.totalMosqueIncome.toLocaleString()}</div>
                         <div className="stat-meta" style={{ fontSize: '0.875rem', color: 'var(--color-text-light)', marginTop: '4px' }}>
-                            This Month: ₹{stats.monthlyMosqueIncome.toLocaleString()}
+                            {t('This Month')}: ₹{stats.monthlyMosqueIncome.toLocaleString()}
                         </div>
                     </div>
                 </div>
@@ -265,16 +306,16 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                         💰
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Remaining Balance</div>
+                        <div className="stat-label">{t('Remaining Balance')}</div>
                         <div className="stat-value" style={{ color: stats.remainingBalance >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
                             ₹{stats.remainingBalance.toLocaleString()}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '8px', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
                             <div style={{ marginBottom: '4px' }}>
-                                <strong>Total Income:</strong> ₹{stats.totalIncome.toLocaleString()}
+                                <strong>{t('Total Income')}:</strong> ₹{stats.totalIncome.toLocaleString()}
                             </div>
                             <div>
-                                <strong>Total Expenses:</strong> ₹{stats.totalExpenses.toLocaleString()}
+                                <strong>{t('Total Expenses')}:</strong> ₹{stats.totalExpenses.toLocaleString()}
                             </div>
                         </div>
                     </div>
@@ -285,10 +326,10 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                         💸
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Expenses</div>
+                        <div className="stat-label">{t('Total Expenses')}</div>
                         <div className="stat-value">₹{stats.totalExpenses.toLocaleString()}</div>
                         <div className="stat-meta" style={{ fontSize: '0.875rem', color: 'var(--color-text-light)', marginTop: '4px' }}>
-                            This Month: ₹{stats.monthlyExpenses.toLocaleString()}
+                            {t('This Month')}: ₹{stats.monthlyExpenses.toLocaleString()}
                         </div>
                     </div>
                 </div>
@@ -296,18 +337,18 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
 
             <div className="grid grid-cols-2" style={{ marginTop: 'var(--spacing-lg)' }}>
                 <div className="card">
-                    <h3>Monthly Collection</h3>
+                    <h3>{t('Monthly Collection')}</h3>
                     <div className="amount-display">
                         <div className="amount-item">
-                            <span className="amount-label">Expected</span>
+                            <span className="amount-label">{t('Expected')}</span>
                             <span className="amount-value success">₹{stats.expectedAmount.toLocaleString()}</span>
                         </div>
                         <div className="amount-item">
-                            <span className="amount-label">Collected</span>
+                            <span className="amount-label">{t('Collected')}</span>
                             <span className="amount-value primary">₹{stats.totalCollected.toLocaleString()}</span>
                         </div>
                         <div className="amount-item">
-                            <span className="amount-label">Pending</span>
+                            <span className="amount-label">{t('Pending')}</span>
                             <span className="amount-value danger">₹{stats.pendingAmount.toLocaleString()}</span>
                         </div>
                     </div>
@@ -320,80 +361,42 @@ function Dashboard({ members = [], payments = [], imamSalaryPayments = [], mosqu
                 </div>
 
                 <div className="card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h3>Yearly Analytics</h3>
-                        <div style={{ display: 'flex', gap: '10px', fontSize: '0.8rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <div style={{ width: '10px', height: '10px', background: '#10b981', borderRadius: '2px' }}></div>
-                                <span>Income</span>
+                    <div className="chart-header">
+                        <h3>{t('Yearly Analytics')}</h3>
+                        <div className="chart-legend">
+                            <div className="legend-item">
+                                <div className="legend-color income"></div>
+                                <span>{t('Income')}</span>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <div style={{ width: '10px', height: '10px', background: '#ef4444', borderRadius: '2px' }}></div>
-                                <span>Expense</span>
+                            <div className="legend-item">
+                                <div className="legend-color expense"></div>
+                                <span>{t('Expense')}</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'flex-end', 
-                        justifyContent: 'space-between', 
-                        height: '200px', 
-                        paddingTop: '20px',
-                        gap: '4px'
-                    }}>
+                    <div className="analytics-chart-container">
                         {yearlyAnalytics.map((item, index) => (
-                            <div key={index} style={{ 
-                                display: 'flex', 
-                                flexDirection: 'column', 
-                                alignItems: 'center', 
-                                flex: 1,
-                                height: '100%'
-                            }}>
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'flex-end', 
-                                    height: '100%', 
-                                    gap: '2px',
-                                    width: '100%',
-                                    justifyContent: 'center'
-                                }}>
+                            <div key={index} className="analytics-chart-item">
+                                <div className="analytics-bars-wrapper">
                                     {/* Income Bar */}
                                     <div 
+                                        className="analytics-bar income"
                                         title={`Income: ₹${item.income}`}
                                         style={{ 
-                                            width: '8px', 
-                                            background: '#10b981', 
                                             height: `${(item.income / maxVal) * 100}%`,
-                                            borderRadius: '2px 2px 0 0',
-                                            minHeight: item.income > 0 ? '4px' : '0',
-                                            transition: 'height 0.3s ease'
                                         }}
-                                    />
+                                    ></div>
                                     {/* Expense Bar */}
                                     <div 
+                                        className="analytics-bar expense"
                                         title={`Expense: ₹${item.expense}`}
                                         style={{ 
-                                            width: '8px', 
-                                            background: '#ef4444', 
                                             height: `${(item.expense / maxVal) * 100}%`,
-                                            borderRadius: '2px 2px 0 0',
-                                            minHeight: item.expense > 0 ? '4px' : '0',
-                                            transition: 'height 0.3s ease'
                                         }}
-                                    />
+                                    ></div>
                                 </div>
-                                <div style={{ 
-                                    marginTop: '8px', 
-                                    fontSize: '0.7rem', 
-                                    color: 'var(--text-secondary)',
-                                    transform: 'rotate(-45deg)',
-                                    transformOrigin: 'top left',
-                                    whiteSpace: 'nowrap',
-                                    marginTop: '15px'
-                                }}>
-                                    {item.label}
-                                </div>
+                                <span className="analytics-label">{item.label}</span>
                             </div>
                         ))}
                     </div>

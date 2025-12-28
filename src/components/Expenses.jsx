@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Expenses.css';
 
 function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
 
@@ -80,8 +82,8 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
         <div className="expenses fade-in">
             <div className="page-header">
                 <div>
-                    <h2>💸 Expense Management</h2>
-                    <p className="text-muted">Track all mosque expenditures</p>
+                    <h2>💸 {t('Expense Management')}</h2>
+                    <p className="text-muted">{t('Track all mosque expenditures')}</p>
                 </div>
             </div>
 
@@ -92,7 +94,7 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                         💸
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Expenses</div>
+                        <div className="stat-label">{t('Total Expenses')}</div>
                         <div className="stat-value">₹{stats.totalExpenses.toLocaleString()}</div>
                     </div>
                 </div>
@@ -102,7 +104,7 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                         📅
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">This Month</div>
+                        <div className="stat-label">{t('This Month')}</div>
                         <div className="stat-value">₹{stats.monthlyTotal.toLocaleString()}</div>
                     </div>
                 </div>
@@ -112,7 +114,7 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                         📊
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Records</div>
+                        <div className="stat-label">{t('Total Records')}</div>
                         <div className="stat-value">{stats.expenseCount}</div>
                     </div>
                 </div>
@@ -121,13 +123,13 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
             {/* Category Breakdown */}
             {stats.categoriesBreakdown.length > 0 && (
                 <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                    <h3>Expense Breakdown by Category</h3>
+                    <h3>{t('Expense Breakdown by Category')}</h3>
                     <div className="category-breakdown">
                         {stats.categoriesBreakdown.map((cat) => (
                             <div key={cat.category} className="category-item">
                                 <div className="category-info">
-                                    <div className="category-name">{cat.category}</div>
-                                    <div className="category-count">{cat.count} expenses</div>
+                                    <div className="category-name">{t(cat.category)}</div>
+                                    <div className="category-count">{cat.count} {t('expenses')}</div>
                                 </div>
                                 <div className="category-amount">₹{cat.totalAmount.toLocaleString()}</div>
                             </div>
@@ -141,7 +143,7 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                 <div className="filters-row">
                     <input
                         type="text"
-                        placeholder="Search by purpose or paid to..."
+                        placeholder={t('Search by purpose or paid to...')}
                         className="form-input"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -152,9 +154,9 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
                     >
-                        <option value="all">All Categories</option>
+                        <option value="all">{t('All Categories')}</option>
                         {categories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
+                            <option key={cat} value={cat}>{t(cat)}</option>
                         ))}
                     </select>
                 </div>
@@ -162,18 +164,18 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
 
             {/* Expense Records Table */}
             <div className="card">
-                <h3>Expense Records ({filteredExpenses.length})</h3>
+                <h3>{t('Expense Records')} ({filteredExpenses.length})</h3>
                 <div className="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Purpose</th>
-                                <th>Category</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Paid To</th>
-                                <th>Payment Method</th>
-                                <th>Actions</th>
+                                <th>{t('Purpose')}</th>
+                                <th>{t('Category')}</th>
+                                <th>{t('Amount')}</th>
+                                <th>{t('Date')}</th>
+                                <th>{t('Paid To')}</th>
+                                <th>{t('Payment Method')}</th>
+                                <th>{t('Actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -181,8 +183,8 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                                 <tr>
                                     <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>
                                         {searchTerm || categoryFilter !== 'all'
-                                            ? 'No expenses found matching your filters'
-                                            : 'No expenses recorded yet'}
+                                            ? t('No expenses found matching your filters')
+                                            : t('No expenses recorded yet')}
                                     </td>
                                 </tr>
                             ) : (
@@ -197,7 +199,7 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                                             )}
                                         </td>
                                         <td>
-                                            <span className="badge badge-primary">{expense.category || 'Other'}</span>
+                                            <span className="badge badge-primary">{t(expense.category || 'Other')}</span>
                                         </td>
                                         <td>
                                             <span className="amount-badge" style={{ background: 'var(--color-danger)', color: 'white' }}>
@@ -208,13 +210,13 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                                             {new Date(expense.date).toLocaleDateString()}
                                         </td>
                                         <td>{expense.paidTo || '-'}</td>
-                                        <td>{expense.paymentMethod || '-'}</td>
+                                        <td>{t(expense.paymentMethod) || '-'}</td>
                                         <td>
                                             {!isReadOnly && (
                                                 <button
                                                     className="btn btn-sm btn-danger"
                                                     onClick={() => onDeleteExpense(expense.id)}
-                                                    title="Delete Expense"
+                                                    title={t('Delete Expense')}
                                                 >
                                                     🗑️
                                                 </button>

@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import './MemberList.css';
 import { generatePaymentReceipt, generatePendingSlip, sendWhatsAppMessage, calculatePendingMonths, generatePendingSlipPDF } from '../utils/receiptGenerator';
 
-function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUpdateMember, onDeleteMember, onDeletePayment, onDeleteImamSalaryPayment, isReadOnly }) {
+function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUpdateMember, onDeleteMember, onDeletePayment, onDeleteImamSalaryPayment, isReadOnly, user }) {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedMember, setSelectedMember] = useState(null);
     const [editMode, setEditMode] = useState(false);
@@ -44,13 +46,13 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
         // Months paid = Total ÷ Monthly Amount
         const monthsPaid = monthlyAmount > 0 ? Math.floor(totalPaid / monthlyAmount) : 0;
 
-        // Calculate expected months from September 2020 to current month
-        const sep2020 = new Date('2020-09-01');
+        // Calculate expected months from Joining Date (or Sep 2020) to current month
+        const startDate = member.joiningDate ? new Date(member.joiningDate) : new Date('2020-09-01');
         const currentDate = new Date();
 
-        const yearsDiff = currentDate.getFullYear() - sep2020.getFullYear();
-        const monthsDiff = currentDate.getMonth() - sep2020.getMonth();
-        const expectedMonths = (yearsDiff * 12) + monthsDiff + 1;
+        const yearsDiff = currentDate.getFullYear() - startDate.getFullYear();
+        const monthsDiff = currentDate.getMonth() - startDate.getMonth();
+        const expectedMonths = Math.max(0, (yearsDiff * 12) + monthsDiff + 1);
 
 
         // Pending months
@@ -66,16 +68,16 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
             : 0;
 
         // Status
-        let status = 'No Payments';
+        let status = t('No Payments');
         let statusColor = '#ef4444'; // red
         if (monthsPaid >= expectedMonths) {
-            status = 'Fully Paid';
+            status = t('Fully Paid');
             statusColor = '#10b981'; // green
             if (monthsPaid > expectedMonths) {
-                status = `Fully Paid (+${monthsPaid - expectedMonths} months advance)`;
+                status = t('Fully Paid (+{{count}} months advance)', { count: monthsPaid - expectedMonths });
             }
         } else if (monthsPaid > 0) {
-            status = `${pendingMonths} Months Pending`;
+            status = t('{{count}} Months Pending', { count: pendingMonths });
             statusColor = '#f59e0b'; // yellow
         }
 
@@ -96,23 +98,23 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
         try {
             const memberPayments = getMemberPayments(member.id);
             const memberImamSalary = getMemberImamSalaryPayments(member.id);
-            const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary);
+            const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate);
             
             // Generate PDF
-            generatePendingSlipPDF(member, pendingMonthsList);
+            generatePendingSlipPDF(member, pendingMonthsList, user?.name);
         } catch (error) {
             console.error("Error generating PDF:", error);
-            alert(`Failed to generate PDF: ${error.message || error}`);
+            alert(t('Failed to generate PDF') + `: ${error.message || error}`);
         }
     };
 
     const handleShareWhatsApp = (member) => {
         const memberPayments = getMemberPayments(member.id);
         const memberImamSalary = getMemberImamSalaryPayments(member.id);
-        const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary);
+        const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate);
         
         const currentMonthStr = new Date().toISOString().slice(0, 7);
-        const slipText = generatePendingSlip(member, currentMonthStr, pendingMonthsList);
+        const slipText = generatePendingSlip(member, currentMonthStr, pendingMonthsList, user?.name);
 
         sendWhatsAppMessage(member.phone, slipText);
     };
@@ -127,7 +129,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
         setEditMode(false);
         setEditData({});
         setSelectedMember(null);
-        alert('Member updated successfully!');
+        alert(t('Member updated successfully!'));
     };
 
     const handleCancelEdit = () => {
@@ -138,14 +140,14 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     const handleSendPendingSlip = (member) => {
         const memberPayments = getMemberPayments(member.id);
         const memberImamSalary = getMemberImamSalaryPayments(member.id);
-        const pendingMonths = calculatePendingMonths(memberPayments, memberImamSalary);
+        const pendingMonths = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate);
 
         if (pendingMonths.length === 0) {
-            alert('This member has no pending payments!');
+            alert(t('This member has no pending payments!'));
             return;
         }
 
-        const slip = generatePendingSlip(member, pendingMonths[0], pendingMonths);
+        const slip = generatePendingSlip(member, pendingMonths[0], pendingMonths, user?.name);
         sendWhatsAppMessage(member.phone, slip);
     };
 
@@ -154,13 +156,13 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
         <div className="member-list fade-in">
             <div className="page-header">
                 <div>
-                    <h2>Member Management</h2>
-                    <p className="text-muted">View and manage all registered members</p>
+                    <h2>{t('Member Management')}</h2>
+                    <p className="text-muted">{t('View and manage all registered members')}</p>
                 </div>
                 <div className="search-box">
                     <input
                         type="text"
-                        placeholder="Search by name or phone..."
+                        placeholder={t("Search by name or phone...")}
                         className="form-input"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -172,12 +174,12 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                 <div className="modal-overlay" onClick={handleCancelEdit}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>Edit Member</h3>
+                            <h3>{t('Edit Member')}</h3>
                             <button className="btn btn-secondary btn-sm" onClick={handleCancelEdit}>✕</button>
                         </div>
                         <div className="modal-body">
                             <div className="form-group">
-                                <label className="form-label">Name</label>
+                                <label className="form-label">{t('Name')}</label>
                                 <input
                                     type="text"
                                     className="form-input"
@@ -186,7 +188,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Phone</label>
+                                <label className="form-label">{t('Phone')}</label>
                                 <input
                                     type="tel"
                                     className="form-input"
@@ -195,7 +197,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Email</label>
+                                <label className="form-label">{t('Email')}</label>
                                 <input
                                     type="email"
                                     className="form-input"
@@ -204,7 +206,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Monthly Amount (₹)</label>
+                                <label className="form-label">{t('Monthly Amount (₹)')}</label>
                                 <input
                                     type="number"
                                     className="form-input"
@@ -213,7 +215,16 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">Address</label>
+                                <label className="form-label">{t('Joining Date')}</label>
+                                <input
+                                    type="date"
+                                    className="form-input"
+                                    value={editData.joiningDate || ''}
+                                    onChange={(e) => setEditData({ ...editData, joiningDate: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">{t('Address')}</label>
                                 <textarea
                                     className="form-textarea"
                                     value={editData.address || ''}
@@ -224,10 +235,10 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                         </div>
                         <div className="modal-footer">
                             <button className="btn btn-primary" onClick={handleSaveEdit}>
-                                Save Changes
+                                {t('Save Changes')}
                             </button>
                             <button className="btn btn-secondary" onClick={handleCancelEdit}>
-                                Cancel
+                                {t('Cancel')}
                             </button>
                         </div>
                     </div>
@@ -239,19 +250,19 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                     <table>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Email</th>
-                                <th>Monthly Amount</th>
-                                <th>Total Payments</th>
-                                <th>Actions</th>
+                                <th>{t('Name')}</th>
+                                <th>{t('Phone')}</th>
+                                <th>{t('Email')}</th>
+                                <th>{t('Monthly Amount')}</th>
+                                <th>{t('Total Payments')}</th>
+                                <th>{t('Actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredMembers.length === 0 ? (
                                 <tr>
                                     <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
-                                        {searchTerm ? 'No members found matching your search' : 'No members added yet'}
+                                        {searchTerm ? t('No members found matching your search') : t('No members added yet')}
                                     </td>
                                 </tr>
                             ) : (
@@ -277,7 +288,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                     <div className="action-buttons">
                                                         <button 
                                                             className="action-btn view-btn" 
-                                                            title="View Slip / Stats"
+                                                            title={t("View Slip / Stats")}
                                                             onClick={() => setSelectedMember(member)}
                                                             style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
                                                         >
@@ -288,7 +299,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                                 <button 
                                                                     className="action-btn edit-btn" 
                                                                     onClick={() => handleEdit(member)}
-                                                                    title="Edit Member"
+                                                                    title={t("Edit Member")}
                                                                     style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
                                                                 >
                                                                     ✏️
@@ -296,7 +307,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                                 <button 
                                                                     className="action-btn delete-btn" 
                                                                     onClick={() => onDeleteMember(member.id)}
-                                                                    title="Delete Member"
+                                                                    title={t("Delete Member")}
                                                                     style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
                                                                 >
                                                                     🗑️
@@ -319,7 +330,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                 <div className="modal-overlay" onClick={() => setSelectedMember(null)}>
                     <div className="modal-content large-modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>Member Statistics</h3>
+                            <h3>{t('Member Statistics')}</h3>
                             <button className="close-btn" onClick={() => setSelectedMember(null)}>×</button>
                         </div>
                         <div className="modal-body">
@@ -337,19 +348,19 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
 
                                         <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', marginBottom: '20px' }}>
                                             <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Monthly Contribution</label>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Monthly Contribution')}</label>
                                                 <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f8fafc' }}>₹{selectedMember.monthlyAmount}</span>
                                             </div>
                                             <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Total Paid</label>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Total Paid')}</label>
                                                 <span className="success-text" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ade80' }}>₹{stats.totalPaid}</span>
                                             </div>
                                             <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Pending Amount</label>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Pending Amount')}</label>
                                                 <span className="danger-text" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f87171' }}>₹{stats.remainingAmount}</span>
                                             </div>
                                             <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>Status</label>
+                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Status')}</label>
                                                 <span style={{ color: stats.statusColor, fontWeight: 'bold' }}>
                                                     {stats.status}
                                                 </span>
@@ -357,7 +368,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                         </div>
 
                                         <div className="progress-section" style={{ marginBottom: '20px' }}>
-                                            <label style={{ display: 'block', marginBottom: '5px' }}>Payment Progress ({stats.monthsPaid} / {stats.expectedMonths} months)</label>
+                                            <label style={{ display: 'block', marginBottom: '5px' }}>{t('Payment Progress')} ({stats.monthsPaid} / {stats.expectedMonths} {t('months')})</label>
                                             <div className="progress-bar" style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
                                                 <div 
                                                     className="progress-fill" 

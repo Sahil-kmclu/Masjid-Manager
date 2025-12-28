@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './RecordPayment.css';
 
 function RecordPayment({ members, payments = [], onAddPayment }) {
+    const { t } = useTranslation();
     const currentDate = new Date();
     const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
 
@@ -13,6 +15,8 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
         notes: '',
     });
 
+    const [minMonth, setMinMonth] = useState('');
+
     const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
@@ -22,7 +26,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
             [name]: value
         }));
 
-        // Auto-fill amount when member is selected
+        // Auto-fill amount and set min month when member is selected
         if (name === 'memberId' && value) {
             const member = members.find(m => m.id === value);
             if (member) {
@@ -30,7 +34,15 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                     ...prev,
                     amount: member.monthlyAmount
                 }));
+                // Set min month based on joining date
+                if (member.joiningDate) {
+                    setMinMonth(member.joiningDate.slice(0, 7));
+                } else {
+                    setMinMonth('2020-09'); // Fallback for legacy
+                }
             }
+        } else if (name === 'memberId' && !value) {
+             setMinMonth('');
         }
 
         if (errors[name]) {
@@ -42,11 +54,11 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
         const newErrors = {};
 
         if (!formData.memberId) {
-            newErrors.memberId = 'Please select a member';
+            newErrors.memberId = t('Please select a member');
         }
 
         if (!formData.month) {
-            newErrors.month = 'Please select a month';
+            newErrors.month = t('Please select a month');
         } else if (formData.memberId) {
             // Check for duplicate payment
             const isDuplicate = payments.some(p => 
@@ -55,18 +67,18 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
             );
 
             if (isDuplicate) {
-                newErrors.month = 'Payment already done this month for this member';
+                newErrors.month = t('Payment already done this month for this member');
             }
         }
 
         if (!formData.amount) {
-            newErrors.amount = 'Amount is required';
+            newErrors.amount = t('Amount is required');
         } else if (parseFloat(formData.amount) <= 0) {
-            newErrors.amount = 'Amount must be greater than 0';
+            newErrors.amount = t('Amount must be greater than 0');
         }
 
         if (!formData.paymentDate) {
-            newErrors.paymentDate = 'Payment date is required';
+            newErrors.paymentDate = t('Payment date is required');
         }
 
         return newErrors;
@@ -92,7 +104,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
             notes: '',
         });
 
-        alert('Payment recorded successfully!');
+        alert(t('Payment recorded successfully!'));
     };
 
     const selectedMember = members.find(m => m.id === formData.memberId);
@@ -100,8 +112,8 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
     return (
         <div className="record-payment fade-in">
             <div className="page-header">
-                <h2>Record Payment</h2>
-                <p className="text-muted">Record a monthly donation payment</p>
+                <h2>{t('Record Payment')}</h2>
+                <p className="text-muted">{t('Record a monthly donation payment')}</p>
             </div>
 
             <div className="grid grid-cols-2">
@@ -109,7 +121,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label className="form-label" htmlFor="memberId">
-                                Select Member *
+                                {t('Select Member')} *
                             </label>
                             <select
                                 id="memberId"
@@ -118,10 +130,10 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                                 value={formData.memberId}
                                 onChange={handleChange}
                             >
-                                <option value="">-- Choose a member --</option>
+                                <option value="">{t('-- Choose a member --')}</option>
                                 {members.map((member) => (
                                     <option key={member.id} value={member.id}>
-                                        {member.name} - ₹{member.monthlyAmount}/month
+                                        {member.name} - ₹{member.monthlyAmount}{t('/month')}
                                     </option>
                                 ))}
                             </select>
@@ -131,7 +143,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                         <div className="form-row">
                             <div className="form-group">
                                 <label className="form-label" htmlFor="month">
-                                    Payment Month *
+                                    {t('Payment Month')} *
                                 </label>
                                 <input
                                     type="month"
@@ -140,13 +152,14 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                                     className="form-input"
                                     value={formData.month}
                                     onChange={handleChange}
+                                    min={minMonth}
                                 />
                                 {errors.month && <span className="error-message">{errors.month}</span>}
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label" htmlFor="paymentDate">
-                                    Payment Date *
+                                    {t('Payment Date')} *
                                 </label>
                                 <input
                                     type="date"
@@ -162,7 +175,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="amount">
-                                Amount (₹) *
+                                {t('Amount (₹)')} *
                             </label>
                             <input
                                 type="number"
@@ -171,7 +184,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                                 className="form-input"
                                 value={formData.amount}
                                 onChange={handleChange}
-                                placeholder="Enter payment amount"
+                                placeholder={t("Enter payment amount")}
                                 min="0"
                                 step="1"
                             />
@@ -180,7 +193,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="notes">
-                                Notes (Optional)
+                                {t('Notes (Optional)')}
                             </label>
                             <textarea
                                 id="notes"
@@ -188,7 +201,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                                 className="form-textarea"
                                 value={formData.notes}
                                 onChange={handleChange}
-                                placeholder="Add any notes about this payment"
+                                placeholder={t("Add any notes about this payment")}
                                 rows="3"
                             />
                         </div>
@@ -196,7 +209,7 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
                         <div className="form-actions">
                             <button type="submit" className="btn btn-primary">
                                 <span>💰</span>
-                                Record Payment
+                                {t('Record Payment')}
                             </button>
                         </div>
                     </form>
@@ -204,29 +217,29 @@ function RecordPayment({ members, payments = [], onAddPayment }) {
 
                 {selectedMember && (
                     <div className="card member-info-card">
-                        <h3>Member Details</h3>
+                        <h3>{t('Member Details')}</h3>
                         <div className="member-info">
                             <div className="info-item">
-                                <span className="info-label">Name</span>
+                                <span className="info-label">{t('Name')}</span>
                                 <span className="info-value">{selectedMember.name}</span>
                             </div>
                             <div className="info-item">
-                                <span className="info-label">Phone</span>
+                                <span className="info-label">{t('Phone')}</span>
                                 <span className="info-value">{selectedMember.phone}</span>
                             </div>
                             {selectedMember.email && (
                                 <div className="info-item">
-                                    <span className="info-label">Email</span>
+                                    <span className="info-label">{t('Email')}</span>
                                     <span className="info-value">{selectedMember.email}</span>
                                 </div>
                             )}
                             <div className="info-item">
-                                <span className="info-label">Monthly Amount</span>
+                                <span className="info-label">{t('Monthly Amount')}</span>
                                 <span className="info-value highlight">₹{selectedMember.monthlyAmount}</span>
                             </div>
                             {selectedMember.address && (
                                 <div className="info-item">
-                                    <span className="info-label">Address</span>
+                                    <span className="info-label">{t('Address')}</span>
                                     <span className="info-value">{selectedMember.address}</span>
                                 </div>
                             )}

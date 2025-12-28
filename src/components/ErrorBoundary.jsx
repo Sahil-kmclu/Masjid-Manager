@@ -1,4 +1,5 @@
 import React from 'react';
+import { withTranslation } from 'react-i18next';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -19,6 +20,7 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const { t } = this.props;
       // You can render any custom fallback UI
       return (
         <div style={{ 
@@ -33,8 +35,8 @@ class ErrorBoundary extends React.Component {
             backgroundColor: '#f8fafc',
             color: '#334155'
         }}>
-          <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Something went wrong.</h1>
-          <p style={{ marginBottom: '2rem' }}>The application encountered an unexpected error.</p>
+          <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>{t('Something went wrong.')}</h1>
+          <p style={{ marginBottom: '2rem' }}>{t('The application encountered an unexpected error.')}</p>
           
           <div style={{ 
               background: '#fee2e2', 
@@ -65,7 +67,7 @@ class ErrorBoundary extends React.Component {
                 fontWeight: 'bold'
             }}
           >
-            Clear Data & Restart (Emergency Reset)
+            {t('Clear Data & Restart (Emergency Reset)')}
           </button>
           
           <button 
@@ -82,7 +84,7 @@ class ErrorBoundary extends React.Component {
                 marginLeft: '10px'
             }}
           >
-            Try Reloading
+            {t('Try Reloading')}
           </button>
         </div>
       );
@@ -92,4 +94,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundary;
+export default withTranslation()(ErrorBoundary);

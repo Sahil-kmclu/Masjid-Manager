@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './MosqueIncome.css';
 
 function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
 
@@ -80,8 +82,8 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
         <div className="mosque-income fade-in">
             <div className="page-header">
                 <div>
-                    <h2>📊 Mosque Income Management</h2>
-                    <p className="text-muted">Track all other income sources for the mosque</p>
+                    <h2>📊 {t('Mosque Income Management')}</h2>
+                    <p className="text-muted">{t('Track all other income sources for the mosque')}</p>
                 </div>
             </div>
 
@@ -92,7 +94,7 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                         💵
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Income</div>
+                        <div className="stat-label">{t('Total Income')}</div>
                         <div className="stat-value">₹{stats.totalIncome.toLocaleString()}</div>
                     </div>
                 </div>
@@ -102,7 +104,7 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                         📅
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">This Month</div>
+                        <div className="stat-label">{t('This Month')}</div>
                         <div className="stat-value">₹{stats.monthlyTotal.toLocaleString()}</div>
                     </div>
                 </div>
@@ -112,7 +114,7 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                         📈
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Records</div>
+                        <div className="stat-label">{t('Total Records')}</div>
                         <div className="stat-value">{stats.incomeCount}</div>
                     </div>
                 </div>
@@ -121,13 +123,13 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
             {/* Category Breakdown */}
             {stats.categoriesBreakdown.length > 0 && (
                 <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                    <h3>Income by Category</h3>
+                    <h3>{t('Income by Category')}</h3>
                     <div className="category-breakdown">
                         {stats.categoriesBreakdown.map((cat) => (
                             <div key={cat.category} className="category-item">
                                 <div className="category-info">
-                                    <div className="category-name">{cat.category}</div>
-                                    <div className="category-count">{cat.count} entries</div>
+                                    <div className="category-name">{t(cat.category)}</div>
+                                    <div className="category-count">{cat.count} {t('entries')}</div>
                                 </div>
                                 <div className="category-amount">₹{cat.totalAmount.toLocaleString()}</div>
                             </div>
@@ -141,7 +143,7 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                 <div className="filters-row">
                     <input
                         type="text"
-                        placeholder="Search by source or description..."
+                        placeholder={t('Search by source or description...')}
                         className="form-input"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -152,9 +154,9 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                         value={categoryFilter}
                         onChange={(e) => setCategoryFilter(e.target.value)}
                     >
-                        <option value="all">All Categories</option>
+                        <option value="all">{t('All Categories')}</option>
                         {categories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
+                            <option key={cat} value={cat}>{t(cat)}</option>
                         ))}
                     </select>
                 </div>
@@ -162,17 +164,17 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
 
             {/* Income Records Table */}
             <div className="card">
-                <h3>Income Records ({filteredIncome.length})</h3>
+                <h3>{t('Income Records')} ({filteredIncome.length})</h3>
                 <div className="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Source</th>
-                                <th>Category</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Description</th>
-                                <th>Actions</th>
+                                <th>{t('Source')}</th>
+                                <th>{t('Category')}</th>
+                                <th>{t('Amount')}</th>
+                                <th>{t('Date')}</th>
+                                <th>{t('Description')}</th>
+                                <th>{t('Actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -180,8 +182,8 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                                 <tr>
                                     <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
                                         {searchTerm || categoryFilter !== 'all'
-                                            ? 'No income records found matching your filters'
-                                            : 'No mosque income recorded yet'}
+                                            ? t('No income records found matching your filters')
+                                            : t('No mosque income recorded yet')}
                                     </td>
                                 </tr>
                             ) : (
@@ -191,7 +193,7 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                                             <div className="income-source">{income.source}</div>
                                         </td>
                                         <td>
-                                            <span className="badge badge-primary">{income.category || 'Other'}</span>
+                                            <span className="badge badge-primary">{t(income.category || 'Other')}</span>
                                         </td>
                                         <td>
                                             <span className="amount-badge">₹{parseFloat(income.amount).toLocaleString()}</span>
@@ -204,7 +206,7 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                                             <button
                                                 className="btn btn-sm btn-danger"
                                                 onClick={() => onDeleteIncome(income.id)}
-                                                title="Delete Income Record"
+                                                title={t('Delete Income Record')}
                                             >
                                                 🗑️
                                             </button>

@@ -1,0 +1,111 @@
+.recycle-bin {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.recycle-bin .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.recycle-bin .filters-row {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.recycle-bin .filters-row input {
+    flex: 2;
+}
+
+.recycle-bin .filters-row select {
+    flex: 1;
+}
+
+.deleted-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.deleted-item-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.deleted-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+}
+
+.type-member { color: var(--accent-color); background: rgba(79, 172, 254, 0.1); }
+.type-payment { color: var(--success-color); background: rgba(16, 185, 129, 0.1); }
+.type-expense { color: var(--danger-color); background: rgba(239, 68, 68, 0.1); }
+
+.item-summary {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.item-meta {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.item-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-left: var(--spacing-md);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--border-color);
+    color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+    .recycle-bin .filters-row {
+        flex-direction: column;
+    }
+    
+    .deleted-item-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+    
+    .item-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

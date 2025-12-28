@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import './Header.css';
 
 function Header({ onToggleSidebar, mosqueName, onToggleTheme, currentTheme }) {
+    const { t } = useTranslation();
     return (
         <header className="header">
             <div className="container header-container">
@@ -23,7 +25,7 @@ function Header({ onToggleSidebar, mosqueName, onToggleTheme, currentTheme }) {
                         </svg>
                         <div>
                             <h1 className="logo-text">{mosqueName || 'Masjid Manager'}</h1>
-                            <p className="logo-subtitle">Tracking System</p>
+                            <p className="logo-subtitle">{t('Tracking System')}</p>
                         </div>
                     </div>
                 </div>
@@ -32,23 +34,11 @@ function Header({ onToggleSidebar, mosqueName, onToggleTheme, currentTheme }) {
                         className="theme-toggle-btn" 
                         onClick={onToggleTheme}
                         aria-label="Toggle Theme"
-                        style={{
-                            background: 'transparent',
-                            border: '1px solid var(--border-color)',
-                            padding: '8px',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--text-primary)',
-                            marginRight: '1rem'
-                        }}
                     >
                         {currentTheme === 'dark' ? '☀️' : '🌙'}
                     </button>
                     <div className="header-info">
-                        <span className="header-label">Today</span>
+                        <span className="header-label">{t('Today')}</span>
                         <span className="header-value">{new Date().toLocaleDateString('en-GB')}</span>
                     </div>
                 </div>

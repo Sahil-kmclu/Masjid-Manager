@@ -114,6 +114,26 @@
     }
 }
 
+@media (max-width: 320px) {
+    .stat-card {
+        gap: 0.5rem; /* Reduce gap */
+    }
+    
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.25rem;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
+    }
+}
+
 .progress-fill {
     height: 100%;
     background: var(--primary-gradient);
@@ -170,5 +190,153 @@
 
     .amount-value {
         font-size: 1.25rem;
+    }
+}
+
+/* Chart Header Styles */
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 0.5rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    /* white-space: nowrap; Removed to allow wrapping on very small screens */
+    line-height: 1.2;
+}
+
+@media (max-width: 360px) {
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .chart-header h3 {
+        font-size: 1rem;
+    }
+}
+
+.chart-legend {
+    display: flex;
+    gap: 10px;
+    font-size: 0.8rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.legend-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.legend-color.income {
+    background: #10b981;
+}
+
+.legend-color.expense {
+    background: #ef4444;
+}
+
+/* Analytics Chart Styles */
+.analytics-chart-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 200px;
+    padding-top: 20px;
+    gap: 4px;
+    width: 100%;
+}
+
+.analytics-chart-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    height: 100%;
+    min-width: 0; /* Prevents overflow */
+}
+
+.analytics-bars-wrapper {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+    gap: 2px;
+    width: 100%;
+    justify-content: center;
+}
+
+.analytics-bar {
+    width: 8px;
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+    transition: height 0.3s ease;
+}
+
+.analytics-bar.income {
+    background: #10b981;
+}
+
+.analytics-bar.expense {
+    background: #ef4444;
+}
+
+.analytics-label {
+    font-size: 0.7rem;
+    margin-top: 8px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Mobile Analytics Chart */
+@media (max-width: 640px) {
+    .analytics-chart-container {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 12px; /* Scrollbar space */
+        gap: 12px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .analytics-chart-item {
+        flex: 0 0 30px; /* Fixed width per month on mobile */
+        min-width: 30px;
+    }
+
+    .analytics-bar {
+        width: 6px;
+    }
+
+    .analytics-label {
+        font-size: 0.65rem;
+        transform: rotate(-45deg);
+        transform-origin: top center;
+        margin-top: 12px;
+        width: 20px;
+        text-align: right;
+    }
+    
+    /* Custom scrollbar for the chart */
+    .analytics-chart-container::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .analytics-chart-container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+    }
+    
+    .analytics-chart-container::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
     }
 }

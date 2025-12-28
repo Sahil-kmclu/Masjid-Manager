@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './ImamSalary.css';
 
 function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }) {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [dateFilter, setDateFilter] = useState('all');
 
@@ -111,8 +113,8 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
         <div className="imam-salary fade-in">
             <div className="page-header">
                 <div>
-                    <h2>🕌 Imam Sahab Salary Tracking</h2>
-                    <p className="text-muted">Track salary contributions from September 2020 onwards</p>
+                    <h2>🕌 {t('Total Imam Salary Collected')}</h2>
+                    <p className="text-muted">{t('Track salary contributions from September 2020 onwards')}</p>
                 </div>
             </div>
 
@@ -123,8 +125,8 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                         💰
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Salary Collected</div>
-                        <div className="stat-value">₹{stats.totalCollected.toLocaleString()}</div>
+                        <div className="stat-label">{t('Total Imam Salary Collected')}</div>
+                        <div className="stat-value" title={`₹${stats.totalCollected.toLocaleString()}`}>₹{stats.totalCollected.toLocaleString()}</div>
                     </div>
                 </div>
 
@@ -133,7 +135,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                         📅
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">This Month</div>
+                        <div className="stat-label">{t('This Month')}</div>
                         <div className="stat-value">₹{stats.monthlyTotal.toLocaleString()}</div>
                     </div>
                 </div>
@@ -143,7 +145,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                         👥
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Contributing Members</div>
+                        <div className="stat-label">{t('Total Contributing Members')}</div>
                         <div className="stat-value">{stats.contributingMembers}/{stats.totalMembers}</div>
                     </div>
                 </div>
@@ -153,7 +155,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                         📊
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Total Payments</div>
+                        <div className="stat-label">{t('Total Payments')}</div>
                         <div className="stat-value">{stats.paymentCount}</div>
                     </div>
                 </div>
@@ -162,7 +164,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
             {/* Top Contributors */}
             {stats.topContributors.length > 0 && (
                 <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                    <h3>Top Contributors</h3>
+                    <h3>{t('Top Contributors')}</h3>
                     <div className="top-contributors">
                         {stats.topContributors.map((contributor, index) => (
                             <div key={contributor.memberId} className="contributor-item">
@@ -170,7 +172,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                                 <div className="contributor-info">
                                     <div className="contributor-name">{contributor.memberName}</div>
                                     <div className="contributor-stats">
-                                        {contributor.paymentCount} payments
+                                        {contributor.paymentCount} {t('payments')}
                                     </div>
                                 </div>
                                 <div className="contributor-amount">₹{contributor.totalAmount.toLocaleString()}</div>
@@ -185,7 +187,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                 <div className="filters-row">
                     <input
                         type="text"
-                        placeholder="Search by member name or phone..."
+                        placeholder={t('Search by member name or phone...')}
                         className="form-input"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -197,27 +199,27 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                         onChange={(e) => setDateFilter(e.target.value)}
                         style={{ width: '200px' }}
                     >
-                        <option value="all">All Time</option>
-                        <option value="thisMonth">This Month</option>
-                        <option value="thisYear">This Year</option>
+                        <option value="all">{t('All Time')}</option>
+                        <option value="thisMonth">{t('This Month')}</option>
+                        <option value="thisYear">{t('This Year')}</option>
                     </select>
                 </div>
             </div>
 
             {/* Payment Records Table */}
             <div className="card">
-                <h3>Salary Payments ({filteredPayments.length})</h3>
+                <h3>{t('Salary Payments')} ({filteredPayments.length})</h3>
                 <div className="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Member Name</th>
-                                <th>Phone</th>
-                                <th>Month</th>
-                                <th>Amount</th>
-                                <th>Payment Date</th>
-                                <th>Notes</th>
-                                <th>Actions</th>
+                                <th>{t('Member Name')}</th>
+                                <th>{t('Phone')}</th>
+                                <th>{t('Month')}</th>
+                                <th>{t('Amount')}</th>
+                                <th>{t('Payment Date')}</th>
+                                <th>{t('Notes')}</th>
+                                <th>{t('Actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -225,8 +227,8 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                                 <tr>
                                     <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>
                                         {searchTerm || dateFilter !== 'all'
-                                            ? 'No payments found matching your filters'
-                                            : 'No Imam salary payments recorded yet'}
+                                            ? t('No payments found matching your filters')
+                                            : t('No Imam salary payments recorded yet')}
                                     </td>
                                 </tr>
                             ) : (
@@ -254,7 +256,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                                                 <button
                                                     className="btn btn-sm btn-danger"
                                                     onClick={() => onDeletePayment(payment.id)}
-                                                    title="Delete Payment"
+                                                    title={t('Delete Payment')}
                                                 >
                                                     🗑️
                                                 </button>

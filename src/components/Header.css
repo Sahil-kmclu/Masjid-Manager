@@ -98,55 +98,78 @@
         height: auto;
         min-height: 70px;
         padding-top: 0.5rem;
+    }
+
+    .header-container {
+        flex-direction: column;
+        gap: 0.5rem;
         padding-bottom: 0.5rem;
     }
 
-    .logo-text {
-        font-size: 1rem;
-        white-space: normal;
-        overflow: visible;
-        text-overflow: unset;
-        max-width: none;
-        line-height: 1.2;
-        word-break: break-word; /* Ensure long words break */
+    .header-left {
+        width: 100%;
+        justify-content: flex-start;
     }
 
-    .logo-subtitle {
-        display: none;
-    }
-
-    .header-info {
-        display: none; /* Hide date on all mobile to save space */
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+        padding-left: 3rem; /* Align with logo text */
     }
     
-    .header-right {
-        display: none;
+    .logo-text {
+        font-size: 1.25rem;
     }
 }
 
 @media (max-width: 480px) {
+  .header-container {
+    padding: 0 0.5rem 0.5rem 0.5rem;
+  }
+  .header-left {
+    gap: 0.5rem;
+    width: auto;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+  }
+}
+
+@media (max-width: 320px) {
     .header-container {
-        padding: 0 0.75rem;
+        flex-direction: row; /* Switch back to row to save vertical space */
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 0.5rem;
     }
 
     .header-left {
-        gap: 0.5rem;
-        width: 100%;
+        width: 100%; /* Take full width */
+        gap: 0.25rem;
     }
 
-    .logo {
-        gap: 0.5rem;
-        flex: 1;
+    .header-right {
+        display: none; /* Ensure hidden */
     }
 
-    .logo svg {
-        width: 32px;
-        height: 32px;
-        flex-shrink: 0;
+    .logo-subtitle {
+        display: none; /* Hide subtitle */
+    }
+
+    .header-info {
+        display: none; /* Hide date/time to save space */
     }
 
     .logo-text {
-        font-size: 0.95rem;
-        width: 100%;
+        font-size: 1rem; /* Adjustable font size */
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
+    }
+
+    .logo svg {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0; /* Prevent logo from squishing */
     }
 }

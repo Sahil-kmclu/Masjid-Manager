@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './RecordPayment.css';
 
 function AddMosqueIncome({ onAddIncome, onCancel }) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         source: '',
         category: 'Donation',
@@ -38,21 +40,21 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
         const newErrors = {};
 
         if (!formData.source.trim()) {
-            newErrors.source = 'Income source is required';
+            newErrors.source = t('Income source is required');
         }
 
         if (!formData.category) {
-            newErrors.category = 'Please select a category';
+            newErrors.category = t('Please select a category');
         }
 
         if (!formData.amount) {
-            newErrors.amount = 'Amount is required';
+            newErrors.amount = t('Amount is required');
         } else if (parseFloat(formData.amount) <= 0) {
-            newErrors.amount = 'Amount must be greater than 0';
+            newErrors.amount = t('Amount must be greater than 0');
         }
 
         if (!formData.date) {
-            newErrors.date = 'Date is required';
+            newErrors.date = t('Date is required');
         }
 
         return newErrors;
@@ -78,21 +80,21 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
             description: '',
         });
 
-        alert('Mosque income recorded successfully!');
+        alert(t('Mosque income recorded successfully!'));
     };
 
     return (
         <div className="record-payment fade-in">
             <div className="page-header">
-                <h2>➕ Add Mosque Income</h2>
-                <p className="text-muted">Record income from various sources</p>
+                <h2>➕ {t('Add Mosque Income')}</h2>
+                <p className="text-muted">{t('Record income from various sources')}</p>
             </div>
 
             <div className="card form-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label" htmlFor="source">
-                            Income Source *
+                            {t('Income Source')} *
                         </label>
                         <input
                             type="text"
@@ -101,7 +103,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
                             className="form-input"
                             value={formData.source}
                             onChange={handleChange}
-                            placeholder="e.g., Wedding Hall Rent, Ramadan Fundraiser"
+                            placeholder={t("e.g., Wedding Hall Rent, Ramadan Fundraiser")}
                         />
                         {errors.source && <span className="error-message">{errors.source}</span>}
                     </div>
@@ -109,7 +111,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
                     <div className="form-row">
                         <div className="form-group">
                             <label className="form-label" htmlFor="category">
-                                Category *
+                                {t('Category')} *
                             </label>
                             <select
                                 id="category"
@@ -119,7 +121,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
                                 onChange={handleChange}
                             >
                                 {categories.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
+                                    <option key={cat} value={cat}>{t(cat)}</option>
                                 ))}
                             </select>
                             {errors.category && <span className="error-message">{errors.category}</span>}
@@ -127,7 +129,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="amount">
-                                Amount (₹) *
+                                {t('Amount (₹)')} *
                             </label>
                             <input
                                 type="number"
@@ -136,7 +138,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
                                 className="form-input"
                                 value={formData.amount}
                                 onChange={handleChange}
-                                placeholder="Enter amount"
+                                placeholder={t("Enter amount")}
                                 min="0"
                                 step="1"
                             />
@@ -146,7 +148,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
 
                     <div className="form-group">
                         <label className="form-label" htmlFor="date">
-                            Date *
+                            {t('Date')} *
                         </label>
                         <input
                             type="date"
@@ -161,7 +163,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
 
                     <div className="form-group">
                         <label className="form-label" htmlFor="description">
-                            Description (Optional)
+                            {t('Description (Optional)')}
                         </label>
                         <textarea
                             id="description"
@@ -169,7 +171,7 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
                             className="form-textarea"
                             value={formData.description}
                             onChange={handleChange}
-                            placeholder="Add any additional details about this income"
+                            placeholder={t("Add any additional details about this income")}
                             rows="3"
                         />
                     </div>
@@ -177,11 +179,11 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
                     <div className="form-actions">
                         <button type="submit" className="btn btn-primary">
                             <span>💵</span>
-                            Add Income
+                            {t('Add Income')}
                         </button>
                         {onCancel && (
                             <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                                Cancel
+                                {t('Cancel')}
                             </button>
                         )}
                     </div>

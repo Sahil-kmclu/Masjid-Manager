@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './RecordPayment.css';
 
 function AddExpense({ onAddExpense, onCancel }) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         purpose: '',
         category: 'Electricity Bill',
@@ -49,21 +51,21 @@ function AddExpense({ onAddExpense, onCancel }) {
         const newErrors = {};
 
         if (!formData.purpose.trim()) {
-            newErrors.purpose = 'Expense purpose is required';
+            newErrors.purpose = t('Expense purpose is required');
         }
 
         if (!formData.category) {
-            newErrors.category = 'Please select a category';
+            newErrors.category = t('Please select a category');
         }
 
         if (!formData.amount) {
-            newErrors.amount = 'Amount is required';
+            newErrors.amount = t('Amount is required');
         } else if (parseFloat(formData.amount) <= 0) {
-            newErrors.amount = 'Amount must be greater than 0';
+            newErrors.amount = t('Amount must be greater than 0');
         }
 
         if (!formData.date) {
-            newErrors.date = 'Date is required';
+            newErrors.date = t('Date is required');
         }
 
         return newErrors;
@@ -91,21 +93,21 @@ function AddExpense({ onAddExpense, onCancel }) {
             notes: '',
         });
 
-        alert('Expense recorded successfully!');
+        alert(t('Expense recorded successfully!'));
     };
 
     return (
         <div className="record-payment fade-in">
             <div className="page-header">
-                <h2>➖ Add Expense</h2>
-                <p className="text-muted">Record mosque expenditure</p>
+                <h2>➖ {t('Add Expense')}</h2>
+                <p className="text-muted">{t('Record mosque expenditure')}</p>
             </div>
 
             <div className="card form-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label" htmlFor="purpose">
-                            Expense Purpose *
+                            {t('Expense Purpose')} *
                         </label>
                         <input
                             type="text"
@@ -114,7 +116,7 @@ function AddExpense({ onAddExpense, onCancel }) {
                             className="form-input"
                             value={formData.purpose}
                             onChange={handleChange}
-                            placeholder="e.g., Monthly electricity bill, Mosque renovation"
+                            placeholder={t("e.g., Monthly electricity bill, Mosque renovation")}
                         />
                         {errors.purpose && <span className="error-message">{errors.purpose}</span>}
                     </div>
@@ -122,7 +124,7 @@ function AddExpense({ onAddExpense, onCancel }) {
                     <div className="form-row">
                         <div className="form-group">
                             <label className="form-label" htmlFor="category">
-                                Category *
+                                {t('Category')} *
                             </label>
                             <select
                                 id="category"
@@ -132,7 +134,7 @@ function AddExpense({ onAddExpense, onCancel }) {
                                 onChange={handleChange}
                             >
                                 {categories.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
+                                    <option key={cat} value={cat}>{t(cat)}</option>
                                 ))}
                             </select>
                             {errors.category && <span className="error-message">{errors.category}</span>}
@@ -140,7 +142,7 @@ function AddExpense({ onAddExpense, onCancel }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="amount">
-                                Amount (₹) *
+                                {t('Amount (₹)')} *
                             </label>
                             <input
                                 type="number"
@@ -149,7 +151,7 @@ function AddExpense({ onAddExpense, onCancel }) {
                                 className="form-input"
                                 value={formData.amount}
                                 onChange={handleChange}
-                                placeholder="Enter amount"
+                                placeholder={t("Enter amount")}
                                 min="0"
                                 step="1"
                             />
@@ -160,7 +162,7 @@ function AddExpense({ onAddExpense, onCancel }) {
                     <div className="form-row">
                         <div className="form-group">
                             <label className="form-label" htmlFor="date">
-                                Date *
+                                {t('Date')} *
                             </label>
                             <input
                                 type="date"
@@ -175,7 +177,7 @@ function AddExpense({ onAddExpense, onCancel }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="paymentMethod">
-                                Payment Method
+                                {t('Payment Method')}
                             </label>
                             <select
                                 id="paymentMethod"
@@ -185,7 +187,7 @@ function AddExpense({ onAddExpense, onCancel }) {
                                 onChange={handleChange}
                             >
                                 {paymentMethods.map(method => (
-                                    <option key={method} value={method}>{method}</option>
+                                    <option key={method} value={method}>{t(method)}</option>
                                 ))}
                             </select>
                         </div>
@@ -193,7 +195,7 @@ function AddExpense({ onAddExpense, onCancel }) {
 
                     <div className="form-group">
                         <label className="form-label" htmlFor="paidTo">
-                            Paid To (Vendor/Person)
+                            {t('Paid To (Vendor/Person)')}
                         </label>
                         <input
                             type="text"
@@ -202,13 +204,13 @@ function AddExpense({ onAddExpense, onCancel }) {
                             className="form-input"
                             value={formData.paidTo}
                             onChange={handleChange}
-                            placeholder="Enter vendor or person name"
+                            placeholder={t("Enter vendor or person name")}
                         />
                     </div>
 
                     <div className="form-group">
                         <label className="form-label" htmlFor="notes">
-                            Notes (Optional)
+                            {t('Notes (Optional)')}
                         </label>
                         <textarea
                             id="notes"
@@ -216,7 +218,7 @@ function AddExpense({ onAddExpense, onCancel }) {
                             className="form-textarea"
                             value={formData.notes}
                             onChange={handleChange}
-                            placeholder="Add any additional details about this expense"
+                            placeholder={t("Add any additional details about this expense")}
                             rows="3"
                         />
                     </div>
@@ -224,11 +226,11 @@ function AddExpense({ onAddExpense, onCancel }) {
                     <div className="form-actions">
                         <button type="submit" className="btn btn-primary">
                             <span>💸</span>
-                            Record Expense
+                            {t('Record Expense')}
                         </button>
                         {onCancel && (
                             <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                                Cancel
+                                {t('Cancel')}
                             </button>
                         )}
                     </div>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function MosqueProfile({ user, onUpdateProfile }) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: '',
         address: '',
@@ -13,11 +15,25 @@ function MosqueProfile({ user, onUpdateProfile }) {
 
     useEffect(() => {
         if (user) {
+            let email = user.email || '';
+            let phone = user.phone || '';
+
+            // Auto-fix: If email looks like a phone number (no @, mostly digits) and phone is empty
+            // This fixes legacy data where phone was saved in email field
+            if (email && !email.includes('@') && !phone) {
+                // Check if it looks like a phone number (allow +, -, space, digits)
+                const isPhoneNumber = /^[\d\s\+\-]+$/.test(email);
+                if (isPhoneNumber) {
+                    phone = email;
+                    email = '';
+                }
+            }
+
             setFormData({
                 name: user.name || '',
                 address: user.address || '',
-                phone: user.phone || '',
-                email: user.email || '',
+                phone: phone,
+                email: email,
                 secretCode: user.secretCode || ''
             });
 
@@ -86,13 +102,13 @@ function MosqueProfile({ user, onUpdateProfile }) {
         e.preventDefault();
         
         if (!formData.name.trim()) {
-            setMessage({ type: 'error', text: 'Mosque Name is required' });
+            setMessage({ type: 'error', text: t('Mosque Name is required') });
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 
         if (!formData.secretCode.trim()) {
-            setMessage({ type: 'error', text: 'Secret Code is required' });
+            setMessage({ type: 'error', text: t('Secret Code is required') });
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
@@ -102,7 +118,7 @@ function MosqueProfile({ user, onUpdateProfile }) {
             ...formData
         });
 
-        setMessage({ type: 'success', text: 'Profile updated successfully!' });
+        setMessage({ type: 'success', text: t('Profile updated successfully!') });
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
         // Clear success message after 3 seconds
@@ -114,8 +130,8 @@ function MosqueProfile({ user, onUpdateProfile }) {
     return (
         <div className="mosque-profile fade-in">
             <div className="page-header">
-                <h2>🕌 Mosque Profile</h2>
-                <p className="text-muted">Manage your mosque details and access settings</p>
+                <h2>🕌 {t('Mosque Profile')}</h2>
+                <p className="text-muted">{t('Manage your mosque details and access settings')}</p>
             </div>
 
             <div className="card" style={{ maxWidth: '800px' }}>
@@ -136,56 +152,56 @@ function MosqueProfile({ user, onUpdateProfile }) {
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-2" style={{ gap: '20px' }}>
                         <div className="form-group">
-                            <label className="form-label">Mosque Name *</label>
+                            <label className="form-label">{t('Mosque Name')} *</label>
                             <input
                                 type="text"
                                 name="name"
                                 className="form-input"
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Mosque Name"
+                                placeholder={t("Mosque Name")}
                             />
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Address</label>
+                            <label className="form-label">{t('Address')}</label>
                             <input
                                 type="text"
                                 name="address"
                                 className="form-input"
                                 value={formData.address}
                                 onChange={handleChange}
-                                placeholder="Full Address"
+                                placeholder={t("Full Address")}
                             />
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Email</label>
+                            <label className="form-label">{t('Email')}</label>
                             <input
                                 type="email"
                                 name="email"
                                 className="form-input"
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="Email Address"
+                                placeholder={t("Email Address")}
                             />
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Phone</label>
+                            <label className="form-label">{t('Phone')}</label>
                             <input
                                 type="text"
                                 name="phone"
                                 className="form-input"
                                 value={formData.phone}
                                 onChange={handleChange}
-                                placeholder="Phone Number"
+                                placeholder={t("Phone Number")}
                             />
                         </div>
                     </div>
 
                     <div className="form-group" style={{ marginTop: '20px', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                        <label className="form-label" style={{ color: '#475569' }}>🔒 Secret Code (For Guest Access)</label>
+                        <label className="form-label" style={{ color: '#475569' }}>🔒 {t('Secret Code (For Guest Access)')}</label>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <input
                                 type="text"
@@ -193,32 +209,32 @@ function MosqueProfile({ user, onUpdateProfile }) {
                                 className="form-input"
                                 value={formData.secretCode}
                                 onChange={handleChange}
-                                placeholder="Secret Code"
+                                placeholder={t("Secret Code")}
                                 style={{ fontWeight: 'bold', letterSpacing: '1px' }}
                             />
                             <div style={{ fontSize: '0.85rem', color: '#64748b', flex: 1 }}>
-                                Share this code with members. They can use it to view the dashboard in Read-Only mode.
+                                {t('Share this code with members. They can use it to view the dashboard in Read-Only mode.')}
                             </div>
                         </div>
                     </div>
 
                     <div className="form-actions" style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
                         <button type="submit" className="btn btn-primary">
-                            Save Changes
+                            {t('Save Changes')}
                         </button>
                     </div>
                 </form>
             </div>
 
             <div className="card" style={{ maxWidth: '800px', marginTop: '30px', border: '1px solid #fee2e2' }}>
-                <h3 style={{ color: '#dc2626', marginBottom: '15px' }}>⚠️ Danger Zone</h3>
+                <h3 style={{ color: '#dc2626', marginBottom: '15px' }}>⚠️ {t('Danger Zone')}</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
                     <div>
-                        <h4 style={{ fontSize: '1.1rem', marginBottom: '5px' }}>Delete Mosque Account</h4>
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '5px' }}>{t('Delete Mosque Account')}</h4>
                         <p className="text-muted" style={{ fontSize: '0.9rem' }}>
-                            Once you delete your account, there is no going back. Please be certain.
+                            {t('Once you delete your account, there is no going back. Please be certain.')}
                             <br />
-                            This will require OTP verification sent to your registered mobile number.
+                            {t('This will require OTP verification sent to your registered mobile number.')}
                         </p>
                     </div>
                     
@@ -231,7 +247,7 @@ function MosqueProfile({ user, onUpdateProfile }) {
                             border: '1px solid #ffedd5',
                             fontWeight: '500'
                         }}>
-                            ⏳ Deletion Request Pending
+                            ⏳ {t('Deletion Request Pending')}
                         </div>
                     ) : (
                         <button 
@@ -240,7 +256,7 @@ function MosqueProfile({ user, onUpdateProfile }) {
                             onClick={handleDeleteRequest}
                             style={{ background: '#dc2626', color: 'white' }}
                         >
-                            Request Account Deletion
+                            {t('Request Account Deletion')}
                         </button>
                     )}
                 </div>

@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './PendingPayments.css';
 import { generatePendingSlip, sendWhatsAppMessage } from '../utils/receiptGenerator';
 
-function PendingPayments({ members, payments }) {
+function PendingPayments({ members, payments, user }) {
+    const { t } = useTranslation();
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -26,7 +28,7 @@ function PendingPayments({ members, payments }) {
     }, [pendingData]);
 
     const sendWhatsAppReminder = (member) => {
-        const slip = generatePendingSlip(member, selectedMonth);
+        const slip = generatePendingSlip(member, selectedMonth, [], user?.name);
         sendWhatsAppMessage(member.phone, slip);
     };
 
@@ -66,11 +68,11 @@ function PendingPayments({ members, payments }) {
         <div className="pending-payments fade-in">
             <div className="page-header">
                 <div>
-                    <h2>Pending Payments</h2>
-                    <p className="text-muted">Members who haven't paid for the selected month</p>
+                    <h2>{t('Pending Payments')}</h2>
+                    <p className="text-muted">{t("Members who haven't paid for the selected month")}</p>
                 </div>
                 <div className="month-selector">
-                    <label className="form-label">Select Month:</label>
+                    <label className="form-label">{t('Select Month:')}</label>
                     <input
                         type="month"
                         className="form-input"
@@ -86,7 +88,7 @@ function PendingPayments({ members, payments }) {
                         ⏰
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Pending Members</div>
+                        <div className="stat-label">{t('Pending Members')}</div>
                         <div className="stat-value">{pendingData.length}</div>
                     </div>
                 </div>
@@ -96,7 +98,7 @@ function PendingPayments({ members, payments }) {
                         💰
                     </div>
                     <div className="stat-content">
-                        <div className="stat-label">Pending Amount</div>
+                        <div className="stat-label">{t('Pending Amount')}</div>
                         <div className="stat-value">₹{totalPending.toLocaleString()}</div>
                     </div>
                 </div>
@@ -106,7 +108,7 @@ function PendingPayments({ members, payments }) {
                 <div className="bulk-actions">
                     <button className="btn btn-primary" onClick={sendBulkReminders}>
                         <span>📱</span>
-                        Send WhatsApp Reminders to All
+                        {t('Send WhatsApp Reminders to All')}
                     </button>
                 </div>
             )}
@@ -115,19 +117,19 @@ function PendingPayments({ members, payments }) {
                 {pendingData.length === 0 ? (
                     <div className="empty-state">
                         <div className="empty-icon">✓</div>
-                        <h3>All Payments Received!</h3>
-                        <p>No pending payments for {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                        <h3>{t('All Payments Received!')}</h3>
+                        <p>{t('No pending payments for')} {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                     </div>
                 ) : (
                     <div className="table-container">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Member Name</th>
-                                    <th>Phone</th>
-                                    <th>Email</th>
-                                    <th>Pending Amount</th>
-                                    <th>Actions</th>
+                                    <th>{t('Member Name')}</th>
+                                    <th>{t('Phone')}</th>
+                                    <th>{t('Email')}</th>
+                                    <th>{t('Pending Amount')}</th>
+                                    <th>{t('Actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -147,16 +149,16 @@ function PendingPayments({ members, payments }) {
                                                     <button
                                                         className="btn btn-sm btn-success"
                                                         onClick={() => sendWhatsAppReminder(member)}
-                                                        title="Send WhatsApp Reminder"
+                                                        title={t("Send WhatsApp Reminder")}
                                                     >
-                                                        📱 WhatsApp
+                                                        📱 {t('WhatsApp')}
                                                     </button>
                                                     <button
                                                         className="btn btn-sm btn-secondary"
                                                         onClick={() => sendSMSReminder(member)}
-                                                        title="Send SMS Reminder"
+                                                        title={t("Send SMS Reminder")}
                                                     >
-                                                        💬 SMS
+                                                        💬 {t('SMS')}
                                                     </button>
                                                 </div>
                                             )}
@@ -170,23 +172,19 @@ function PendingPayments({ members, payments }) {
             </div>
 
             <div className="card info-card">
-                <h3>📌 Important Notes</h3>
+                <h3>📌 {t('Important Notes')}</h3>
                 <ul>
                     <li>
-                        <strong>WhatsApp Reminders:</strong> Clicking the WhatsApp button will open WhatsApp Web/App
-                        with a pre-filled message. You'll need to click send for each member.
+                        <strong>{t('WhatsApp Reminders:')}</strong> {t("Clicking the WhatsApp button will open WhatsApp Web/App with a pre-filled message. You'll need to click send for each member.")}
                     </li>
                     <li>
-                        <strong>SMS Reminders:</strong> Clicking the SMS button will open your default SMS app
-                        with a pre-filled message.
+                        <strong>{t('SMS Reminders:')}</strong> {t("Clicking the SMS button will open your default SMS app with a pre-filled message.")}
                     </li>
                     <li>
-                        <strong>Bulk Reminders:</strong> Opens WhatsApp for all pending members with 1-second intervals.
-                        You'll need to send each message manually.
+                        <strong>{t('Bulk Reminders:')}</strong> {t("Opens WhatsApp for all pending members with 1-second intervals. You'll need to send each message manually.")}
                     </li>
                     <li>
-                        <strong>Automation:</strong> For fully automated alerts, you'll need to integrate with
-                        WhatsApp Business API or an SMS gateway service (see README for instructions).
+                        <strong>{t('Automation:')}</strong> {t("For fully automated alerts, you'll need to integrate with WhatsApp Business API or an SMS gateway service (see README for instructions).")}
                     </li>
                 </ul>
             </div>

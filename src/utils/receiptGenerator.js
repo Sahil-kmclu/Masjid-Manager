@@ -6,7 +6,7 @@ import autoTable from 'jspdf-autotable';
 /**
  * Generate a formatted payment receipt for WhatsApp
  */
-export const generatePaymentReceipt = (member, payment) => {
+export const generatePaymentReceipt = (member, payment, mosqueName) => {
     const paymentDate = new Date(payment.paymentDate).toLocaleDateString('en-IN', {
         day: '2-digit',
         month: 'long',
@@ -18,8 +18,10 @@ export const generatePaymentReceipt = (member, payment) => {
         year: 'numeric'
     });
 
+    const name = mosqueName || "CHURAMAN CHAK BHATWALIYA MASJID";
+
     const receipt = `━━━━━━━━━━━━━━━━━━━━━
-🕌 *CHURAMAN CHAK BHATWALIYA MASJID*
+🕌 *${name.toUpperCase()}*
 ━━━━━━━━━━━━━━━━━━━━━
 
 📋 *PAYMENT RECEIPT*
@@ -48,14 +50,16 @@ May Allah accept your donation.
 /**
  * Generate a pending payment reminder slip for WhatsApp
  */
-export const generatePendingSlip = (member, month, pendingMonths = []) => {
+export const generatePendingSlip = (member, month, pendingMonths = [], mosqueName) => {
     const monthYear = new Date(month + '-01').toLocaleDateString('en-IN', {
         month: 'long',
         year: 'numeric'
     });
 
+    const name = mosqueName || "CHURAMAN CHAK BHATWALIYA MASJID";
+
     let slip = `━━━━━━━━━━━━━━━━━━━━━
-🕌 *CHURAMAN CHAK BHATWALIYA MASJID*
+🕌 *${name.toUpperCase()}*
 ━━━━━━━━━━━━━━━━━━━━━
 
 📝 *PAYMENT REMINDER*
@@ -99,15 +103,17 @@ JazakAllah Khair!
 /**
  * Generate a detailed payment summary for a member
  */
-export const generatePaymentSummary = (member, payments, allMonths) => {
+export const generatePaymentSummary = (member, payments, allMonths, mosqueName) => {
     const paidMonths = payments.map(p => p.month);
     const pendingMonths = allMonths.filter(m => !paidMonths.includes(m));
 
     const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
     const totalPending = pendingMonths.length * parseFloat(member.monthlyAmount);
 
+    const name = mosqueName || "CHURAMAN CHAK BHATWALIYA MASJID";
+
     let summary = `━━━━━━━━━━━━━━━━━━━━━
-🕌 *CHURAMAN CHAK BHATWALIYA MASJID*
+🕌 *${name.toUpperCase()}*
 ━━━━━━━━━━━━━━━━━━━━━
 
 📊 *PAYMENT SUMMARY*
@@ -140,18 +146,20 @@ export const sendWhatsAppMessage = (phoneNumber, message) => {
 };
 
 /**
- * Calculate pending months for a member (from September 2020 to current month)
+ * Calculate pending months for a member (from Joining Date or default Sept 2020 to current month)
  */
-export const calculatePendingMonths = (generalPayments, imamSalaryPayments = []) => {
+export const calculatePendingMonths = (generalPayments, imamSalaryPayments = [], memberJoiningDate = '2020-09-01') => {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
 
-    // Generate all months from September 2020 to current month
+    // Determine start date
+    const startDate = new Date(memberJoiningDate || '2020-09-01');
+    const startYear = startDate.getFullYear();
+    const startMonthIndex = startDate.getMonth();
+
+    // Generate all months from Start Date to current month
     const allMonths = [];
-    const startDate = new Date('2020-09-01');
-    const startYear = 2020;
-    const startMonthIndex = 8; // September (0-indexed)
 
     for (let year = startYear; year <= currentYear; year++) {
         const startM = year === startYear ? startMonthIndex : 0;
@@ -174,13 +182,14 @@ export const calculatePendingMonths = (generalPayments, imamSalaryPayments = [])
 /**
  * Generate and download a PDF pending slip
  */
-export const generatePendingSlipPDF = (member, pendingMonths = []) => {
+export const generatePendingSlipPDF = (member, pendingMonths = [], mosqueName) => {
     const doc = new jsPDF();
     
     // Header
     doc.setFontSize(22);
     doc.setTextColor(22, 163, 74); // Green color
-    doc.text("CHURAMAN CHAK BHATWALIYA MASJID", 105, 20, { align: "center" });
+    const name = mosqueName || "CHURAMAN CHAK BHATWALIYA MASJID";
+    doc.text(name.toUpperCase(), 105, 20, { align: "center" });
     
     doc.setFontSize(12);
     doc.setTextColor(100);

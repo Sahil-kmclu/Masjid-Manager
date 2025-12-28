@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './RecordPayment.css';
 
 function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
+    const { t } = useTranslation();
     const currentDate = new Date();
     const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-    const minDate = '2020-09';
+    
+    const [minMonth, setMinMonth] = useState('2020-09');
 
     const [formData, setFormData] = useState({
         memberId: '',
@@ -23,7 +26,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
             [name]: value
         }));
 
-        // Auto-fill amount when member is selected
+        // Auto-fill amount and set min month when member is selected
         if (name === 'memberId' && value) {
             const member = members.find(m => m.id === value);
             if (member) {
@@ -31,7 +34,16 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                     ...prev,
                     amount: member.monthlyAmount
                 }));
+                
+                // Set min month based on joining date
+                if (member.joiningDate) {
+                    setMinMonth(member.joiningDate.slice(0, 7));
+                } else {
+                    setMinMonth('2020-09'); // Fallback for legacy
+                }
             }
+        } else if (name === 'memberId' && !value) {
+            setMinMonth('2020-09');
         }
 
         if (errors[name]) {
@@ -43,17 +55,18 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
         const newErrors = {};
 
         if (!formData.memberId) {
-            newErrors.memberId = 'Please select a member';
+            newErrors.memberId = t('Please select a member');
         }
 
         if (!formData.month) {
-            newErrors.month = 'Please select a month';
+            newErrors.month = t('Please select a month');
         } else {
-            // Validate month is not before September 2020
+            // Validate month is not before Joining Date (or Sept 2020)
             const selectedMonth = new Date(formData.month + '-01');
-            const sep2020 = new Date('2020-09-01');
-            if (selectedMonth < sep2020) {
-                newErrors.month = 'Imam salary tracking starts from September 2020';
+            const minDateObj = new Date(minMonth + '-01');
+            
+            if (selectedMonth < minDateObj) {
+                newErrors.month = t('Payment cannot be before joining date');
             } else if (formData.memberId) {
                 // Check for duplicate payment
                 const isDuplicate = imamSalaryPayments.some(p => 
@@ -62,19 +75,19 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                 );
 
                 if (isDuplicate) {
-                    newErrors.month = 'Payment already done this month for this member';
+                    newErrors.month = t('Payment already done this month for this member');
                 }
             }
         }
 
         if (!formData.amount) {
-            newErrors.amount = 'Amount is required';
+            newErrors.amount = t('Amount is required');
         } else if (parseFloat(formData.amount) <= 0) {
-            newErrors.amount = 'Amount must be greater than 0';
+            newErrors.amount = t('Amount must be greater than 0');
         }
 
         if (!formData.paymentDate) {
-            newErrors.paymentDate = 'Payment date is required';
+            newErrors.paymentDate = t('Payment date is required');
         }
 
         return newErrors;
@@ -100,7 +113,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
             notes: '',
         });
 
-        alert('Imam salary payment recorded successfully!');
+        alert(t('Imam salary payment recorded successfully!'));
     };
 
     const selectedMember = members.find(m => m.id === formData.memberId);
@@ -108,8 +121,8 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
     return (
         <div className="record-payment fade-in">
             <div className="page-header">
-                <h2>💰 Record Imam Salary Payment</h2>
-                <p className="text-muted">Record monthly Imam salary contribution from a member</p>
+                <h2>💰 {t('Record Imam Salary Payment')}</h2>
+                <p className="text-muted">{t('Record monthly Imam salary contribution from a member')}</p>
             </div>
 
             <div className="grid grid-cols-2">
@@ -117,7 +130,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label className="form-label" htmlFor="memberId">
-                                Select Member *
+                                {t('Select Member')} *
                             </label>
                             <select
                                 id="memberId"
@@ -126,10 +139,10 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                                 value={formData.memberId}
                                 onChange={handleChange}
                             >
-                                <option value="">-- Choose a member --</option>
+                                <option value="">{t('-- Choose a member --')}</option>
                                 {members.map((member) => (
                                     <option key={member.id} value={member.id}>
-                                        {member.name} - ₹{member.monthlyAmount}/month
+                                        {member.name} - ₹{member.monthlyAmount}{t('/month')}
                                     </option>
                                 ))}
                             </select>
@@ -139,7 +152,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                         <div className="form-row">
                             <div className="form-group">
                                 <label className="form-label" htmlFor="month">
-                                    Payment Month *
+                                    {t('Payment Month')} *
                                 </label>
                                 <input
                                     type="month"
@@ -148,15 +161,19 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                                     className="form-input"
                                     value={formData.month}
                                     onChange={handleChange}
-                                    min={minDate}
+                                    min={minMonth}
                                 />
                                 {errors.month && <span className="error-message">{errors.month}</span>}
-                                <small className="form-hint">From September 2020 onwards</small>
+                                <small className="form-hint">
+                                    {minMonth === '2020-09' 
+                                        ? t('From September 2020 onwards') 
+                                        : t('From Joining Date onwards')}
+                                </small>
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label" htmlFor="paymentDate">
-                                    Payment Date *
+                                    {t('Payment Date')} *
                                 </label>
                                 <input
                                     type="date"
@@ -172,7 +189,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="amount">
-                                Amount (₹) *
+                                {t('Amount (₹)')} *
                             </label>
                             <input
                                 type="number"
@@ -181,7 +198,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                                 className="form-input"
                                 value={formData.amount}
                                 onChange={handleChange}
-                                placeholder="Enter payment amount"
+                                placeholder={t("Enter payment amount")}
                                 min="0"
                                 step="1"
                             />
@@ -190,7 +207,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="notes">
-                                Notes (Optional)
+                                {t('Notes (Optional)')}
                             </label>
                             <textarea
                                 id="notes"
@@ -198,7 +215,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                                 className="form-textarea"
                                 value={formData.notes}
                                 onChange={handleChange}
-                                placeholder="Add any notes about this payment"
+                                placeholder={t("Add any notes about this payment")}
                                 rows="3"
                             />
                         </div>
@@ -206,7 +223,7 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
                         <div className="form-actions">
                             <button type="submit" className="btn btn-primary">
                                 <span>💰</span>
-                                Record Salary Payment
+                                {t('Record Salary Payment')}
                             </button>
                         </div>
                     </form>
@@ -214,29 +231,29 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment }) {
 
                 {selectedMember && (
                     <div className="card member-info-card">
-                        <h3>Member Details</h3>
+                        <h3>{t('Member Details')}</h3>
                         <div className="member-info">
                             <div className="info-item">
-                                <span className="info-label">Name</span>
+                                <span className="info-label">{t('Name')}</span>
                                 <span className="info-value">{selectedMember.name}</span>
                             </div>
                             <div className="info-item">
-                                <span className="info-label">Phone</span>
+                                <span className="info-label">{t('Phone')}</span>
                                 <span className="info-value">{selectedMember.phone}</span>
                             </div>
                             {selectedMember.email && (
                                 <div className="info-item">
-                                    <span className="info-label">Email</span>
+                                    <span className="info-label">{t('Email')}</span>
                                     <span className="info-value">{selectedMember.email}</span>
                                 </div>
                             )}
                             <div className="info-item">
-                                <span className="info-label">Monthly Amount</span>
+                                <span className="info-label">{t('Monthly Amount')}</span>
                                 <span className="info-value highlight">₹{selectedMember.monthlyAmount}</span>
                             </div>
                             {selectedMember.address && (
                                 <div className="info-item">
-                                    <span className="info-label">Address</span>
+                                    <span className="info-label">{t('Address')}</span>
                                     <span className="info-value">{selectedMember.address}</span>
                                 </div>
                             )}

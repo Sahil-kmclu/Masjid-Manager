@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Auth.css';
 
 function Auth({ onLogin, currentTheme, onToggleTheme }) {
+    const { t } = useTranslation();
     const [mode, setMode] = useState('login'); // login, register, guest-login, super-admin-login
     const [formData, setFormData] = useState({
         mosqueName: '',
@@ -76,11 +78,16 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
             return;
         }
 
+        // Determine if input is email or phone
+        const isEmail = formData.email.includes('@');
+        const email = isEmail ? formData.email : '';
+        const phone = isEmail ? formData.phone : formData.email;
+
         const newMosque = {
             id: Date.now().toString(),
             name: formData.mosqueName,
-            email: formData.email,
-            phone: formData.phone,
+            email: email,
+            phone: phone,
             password: formData.password, // In a real app, this should be hashed
             address: formData.address,
             secretCode: formData.secretCode,
@@ -245,15 +252,15 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         setGeneratedOtp('');
                         setOtpInput('');
                     }}>
-                        ← Back to Login
+                        ← {t('Back to Login')}
                     </button>
                     <div className="auth-header">
                         <span className="auth-logo">🔐</span>
-                        <h2 className="auth-title">Reset Password</h2>
+                        <h2 className="auth-title">{t('Reset Password')}</h2>
                         <p className="auth-subtitle">
-                            {forgotStep === 1 && "Enter your email or phone to receive OTP"}
-                            {forgotStep === 2 && "Enter the 4-digit OTP sent to you"}
-                            {forgotStep === 3 && "Create a new password"}
+                            {forgotStep === 1 && t('Enter your email or phone to receive OTP')}
+                            {forgotStep === 2 && t('Enter the 4-digit OTP sent to you')}
+                            {forgotStep === 3 && t('Create a new password')}
                         </p>
                     </div>
 
@@ -262,7 +269,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         
                         {forgotStep === 1 && (
                             <div className="form-group">
-                                <label>Email / Phone</label>
+                                <label>{t('Email / Phone')}</label>
                                 <input
                                     type="text"
                                     name="email"
@@ -278,7 +285,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
 
                         {forgotStep === 2 && (
                             <div className="form-group">
-                                <label>OTP Code</label>
+                                <label>{t('OTP Code')}</label>
                                 <input
                                     type="text"
                                     className="form-input"
@@ -305,7 +312,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                                         }}
                                         style={{ color: 'var(--primary-color)', fontSize: '0.9rem', background: 'none', border: 'none', cursor: 'pointer' }}
                                     >
-                                        Resend OTP
+                                        {t('Resend OTP')}
                                     </button>
                                 </div>
                             </div>
@@ -314,7 +321,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         {forgotStep === 3 && (
                             <>
                                 <div className="form-group">
-                                    <label>New Password</label>
+                                    <label>{t('New Password')}</label>
                                     <input
                                         type="password"
                                         name="password"
@@ -328,7 +335,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                                 </div>
 
                                 <div className="form-group">
-                                    <label>Confirm New Password</label>
+                                    <label>{t('Confirm New Password')}</label>
                                     <input
                                         type="password"
                                         name="confirmPassword"
@@ -343,9 +350,9 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         )}
 
                         <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                            {forgotStep === 1 && "Send OTP"}
-                            {forgotStep === 2 && "Verify OTP"}
-                            {forgotStep === 3 && "Reset Password"}
+                            {forgotStep === 1 && t('Send OTP')}
+                            {forgotStep === 2 && t('Verify OTP')}
+                            {forgotStep === 3 && t('Reset Password')}
                         </button>
                     </form>
                 </div>
@@ -367,19 +374,19 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                 </div>
                 <div className="auth-card">
                     <button className="back-btn" onClick={() => setMode('login')}>
-                        ← Back to Login
+                        ← {t('Back to Login')}
                     </button>
                     <div className="auth-header">
                         <span className="auth-logo">🛡️</span>
                         <h2 className="auth-title">Super Admin</h2>
-                        <p className="auth-subtitle">Owner Access Only</p>
+                        <p className="auth-subtitle">{t('Owner Access Only')}</p>
                     </div>
 
                     <form className="auth-form" onSubmit={handleSuperAdminLogin}>
                         {error && <div className="error-message">{error}</div>}
                         
                         <div className="form-group">
-                            <label>Username</label>
+                            <label>{t('Username')}</label>
                             <input
                                 type="text"
                                 className="form-input"
@@ -394,7 +401,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         </div>
 
                         <div className="form-group">
-                            <label>Password</label>
+                            <label>{t('Password')}</label>
                             <input
                                 type="password"
                                 className="form-input"
@@ -409,7 +416,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         </div>
 
                         <button type="submit" className="btn btn-primary" style={{ width: '100%', background: '#1e293b' }}>
-                            Login as Owner
+                            {t('Login as Owner')}
                         </button>
                     </form>
                 </div>
@@ -431,19 +438,19 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                 </div>
                 <div className="auth-card">
                     <button className="back-btn" onClick={() => setMode('login')}>
-                        ← Back to Login
+                        ← {t('Back to Login')}
                     </button>
                     <div className="auth-header">
                         <span className="auth-logo">👁️</span>
-                        <h2 className="auth-title">Guest Access</h2>
-                        <p className="auth-subtitle">Enter the secret code to view mosque data</p>
+                        <h2 className="auth-title">{t('Guest Access')}</h2>
+                        <p className="auth-subtitle">{t('Enter the secret code to view mosque data')}</p>
                     </div>
 
                     <form className="auth-form" onSubmit={handleGuestLogin}>
                         {error && <div className="error-message">{error}</div>}
                         
                         <div className="form-group">
-                            <label>Secret Code</label>
+                            <label>{t('Secret Code')}</label>
                             <input
                                 type="text"
                                 className="form-input"
@@ -458,7 +465,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         </div>
 
                         <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                            Access Dashboard
+                            {t('Access Dashboard')}
                         </button>
                     </form>
                 </div>
@@ -481,7 +488,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                 <div className="auth-header">
                     <span className="auth-logo">🕌</span>
                     <h2 className="auth-title">Masjid Manager</h2>
-                    <p className="auth-subtitle">Tracking System</p>
+                    <p className="auth-subtitle">{t('Tracking System')}</p>
                 </div>
 
                 <div className="auth-tabs">
@@ -489,13 +496,13 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                         className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
                         onClick={() => { setMode('login'); setError(''); }}
                     >
-                        Login
+                        {t('Login')}
                     </button>
                     <button 
                         className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
                         onClick={() => { setMode('register'); setError(''); }}
                     >
-                        Register Mosque
+                        {t('Register Mosque')}
                     </button>
                 </div>
 
@@ -505,7 +512,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                     {mode === 'register' && (
                         <>
                             <div className="form-group">
-                                <label>Mosque Name</label>
+                                <label>{t('Mosque Name')}</label>
                                 <input
                                     type="text"
                                     name="mosqueName"
@@ -518,7 +525,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                             </div>
                             
                             <div className="form-group">
-                                <label>Address</label>
+                                <label>{t('Address')}</label>
                                 <input
                                     type="text"
                                     name="address"
@@ -530,7 +537,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                             </div>
 
                             <div className="form-group">
-                                <label>Secret Code (for Guest Access)</label>
+                                <label>{t('Secret Code (for Guest Access)')}</label>
                                 <input
                                     type="text"
                                     name="secretCode"
@@ -541,14 +548,14 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                                     required
                                 />
                                 <small style={{ display: 'block', marginTop: '4px', color: 'var(--text-muted)' }}>
-                                    Share this code with members for read-only access.
+                                    {t('Share this code with members for read-only access.')}
                                 </small>
                             </div>
                         </>
                     )}
 
                     <div className="form-group">
-                        <label>Email / Phone</label>
+                        <label>{t('Email / Phone')}</label>
                         <input
                             type="text"
                             name="email"
@@ -561,7 +568,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                     </div>
 
                     <div className="form-group">
-                        <label>Password</label>
+                        <label>{t('Password')}</label>
                         <input
                             type="password"
                             name="password"
@@ -586,7 +593,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                                         fontWeight: 500
                                     }}
                                 >
-                                    Forgot Password?
+                                    {t('Forgot Password?')}
                                 </button>
                             </div>
                         )}
@@ -594,7 +601,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
 
                     {mode === 'register' && (
                         <div className="form-group">
-                            <label>Confirm Password</label>
+                            <label>{t('Confirm Password')}</label>
                             <input
                                 type="password"
                                 name="confirmPassword"
@@ -608,13 +615,13 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                     )}
 
                     <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                        {mode === 'login' ? 'Login' : 'Register Mosque'}
+                        {mode === 'login' ? t('Login') : t('Register Mosque')}
                     </button>
                 </form>
 
                 <div className="auth-footer">
                     <button className="guest-access-btn" onClick={() => setMode('guest-login')}>
-                        👁️ View as Guest (Read Only)
+                        👁️ {t('View as Guest (Read Only)')}
                     </button>
                     
                     <div style={{ 
@@ -650,7 +657,7 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                                 e.currentTarget.style.background = 'none';
                             }}
                         >
-                            <span>🔒</span> Owner Login
+                            <span>🔒</span> {t('Owner Login')}
                         </button>
                     </div>
                 </div>

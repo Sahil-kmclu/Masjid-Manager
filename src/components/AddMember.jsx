@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './AddMember.css';
 
 function AddMember({ onAddMember, onCancel }) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
         email: '',
         monthlyAmount: '',
         address: '',
+        joiningDate: new Date().toISOString().split('T')[0], // Default to today
     });
 
     const [errors, setErrors] = useState({});
@@ -28,23 +31,23 @@ function AddMember({ onAddMember, onCancel }) {
         const newErrors = {};
 
         if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
+            newErrors.name = t('Name is required');
         }
 
         if (!formData.phone.trim()) {
-            newErrors.phone = 'Phone number is required';
+            newErrors.phone = t('Phone number is required');
         } else if (!/^\d{10}$/.test(formData.phone.replace(/\s/g, ''))) {
-            newErrors.phone = 'Please enter a valid 10-digit phone number';
+            newErrors.phone = t('Please enter a valid 10-digit phone number');
         }
 
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
+            newErrors.email = t('Please enter a valid email address');
         }
 
         if (!formData.monthlyAmount) {
-            newErrors.monthlyAmount = 'Monthly amount is required';
+            newErrors.monthlyAmount = t('Monthly amount is required');
         } else if (parseFloat(formData.monthlyAmount) <= 0) {
-            newErrors.monthlyAmount = 'Amount must be greater than 0';
+            newErrors.monthlyAmount = t('Amount must be greater than 0');
         }
 
         return newErrors;
@@ -71,7 +74,7 @@ function AddMember({ onAddMember, onCancel }) {
         });
 
         // Show success message or navigate back
-        alert('Member added successfully!');
+        alert(t('Member added successfully!'));
         if (onCancel) {
             onCancel();
         }
@@ -80,15 +83,15 @@ function AddMember({ onAddMember, onCancel }) {
     return (
         <div className="add-member fade-in">
             <div className="page-header">
-                <h2>Add New Member</h2>
-                <p className="text-muted">Add a new member to the donation tracking system</p>
+                <h2>{t('Add New Member')}</h2>
+                <p className="text-muted">{t('Add a new member to the donation tracking system')}</p>
             </div>
 
             <div className="card form-card">
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label className="form-label" htmlFor="name">
-                            Full Name *
+                            {t('Full Name')} *
                         </label>
                         <input
                             type="text"
@@ -97,7 +100,7 @@ function AddMember({ onAddMember, onCancel }) {
                             className="form-input"
                             value={formData.name}
                             onChange={handleChange}
-                            placeholder="Enter member's full name"
+                            placeholder={t("Enter member's full name")}
                         />
                         {errors.name && <span className="error-message">{errors.name}</span>}
                     </div>
@@ -105,7 +108,7 @@ function AddMember({ onAddMember, onCancel }) {
                     <div className="form-row">
                         <div className="form-group">
                             <label className="form-label" htmlFor="phone">
-                                Phone Number *
+                                {t('Phone Number')} *
                             </label>
                             <input
                                 type="tel"
@@ -114,14 +117,14 @@ function AddMember({ onAddMember, onCancel }) {
                                 className="form-input"
                                 value={formData.phone}
                                 onChange={handleChange}
-                                placeholder="10-digit mobile number"
+                                placeholder={t("10-digit mobile number")}
                             />
                             {errors.phone && <span className="error-message">{errors.phone}</span>}
                         </div>
 
                         <div className="form-group">
                             <label className="form-label" htmlFor="email">
-                                Email Address
+                                {t('Email Address')}
                             </label>
                             <input
                                 type="email"
@@ -130,7 +133,7 @@ function AddMember({ onAddMember, onCancel }) {
                                 className="form-input"
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="email@example.com"
+                                placeholder={t("email@example.com")}
                             />
                             {errors.email && <span className="error-message">{errors.email}</span>}
                         </div>
@@ -138,7 +141,7 @@ function AddMember({ onAddMember, onCancel }) {
 
                     <div className="form-group">
                         <label className="form-label" htmlFor="monthlyAmount">
-                            Monthly Contribution Amount (₹) *
+                            {t('Monthly Contribution Amount (₹)')} *
                         </label>
                         <input
                             type="number"
@@ -147,7 +150,7 @@ function AddMember({ onAddMember, onCancel }) {
                             className="form-input"
                             value={formData.monthlyAmount}
                             onChange={handleChange}
-                            placeholder="Enter monthly amount"
+                            placeholder={t("Enter monthly amount")}
                             min="0"
                             step="1"
                         />
@@ -155,8 +158,24 @@ function AddMember({ onAddMember, onCancel }) {
                     </div>
 
                     <div className="form-group">
+                        <label className="form-label" htmlFor="joiningDate">
+                            {t('Joining Date / Start Month')} *
+                        </label>
+                        <input
+                            type="date"
+                            id="joiningDate"
+                            name="joiningDate"
+                            className="form-input"
+                            value={formData.joiningDate}
+                            onChange={handleChange}
+                            required
+                        />
+                        {errors.joiningDate && <span className="error-message">{errors.joiningDate}</span>}
+                    </div>
+
+                    <div className="form-group">
                         <label className="form-label" htmlFor="address">
-                            Address
+                            {t('Address')}
                         </label>
                         <textarea
                             id="address"
@@ -164,7 +183,7 @@ function AddMember({ onAddMember, onCancel }) {
                             className="form-textarea"
                             value={formData.address}
                             onChange={handleChange}
-                            placeholder="Enter member's address"
+                            placeholder={t("Enter member's address")}
                             rows="3"
                         />
                     </div>
@@ -172,11 +191,11 @@ function AddMember({ onAddMember, onCancel }) {
                     <div className="form-actions">
                         <button type="submit" className="btn btn-primary">
                             <span>✓</span>
-                            Add Member
+                            {t('Add Member')}
                         </button>
                         {onCancel && (
                             <button type="button" className="btn btn-secondary" onClick={onCancel}>
-                                Cancel
+                                {t('Cancel')}
                             </button>
                         )}
                     </div>
