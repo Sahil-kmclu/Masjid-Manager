@@ -96,29 +96,37 @@
 @media (max-width: 640px) {
     .header {
         height: auto;
-        min-height: 70px;
-        padding-top: 0.5rem;
+        min-height: 60px;
+        padding: 0.5rem 0;
     }
 
     .header-container {
-        flex-direction: column;
-        gap: 0.5rem;
-        padding-bottom: 0.5rem;
+        flex-direction: row; /* Keep row to save vertical space */
+        align-items: center;
+        padding-bottom: 0;
     }
 
     .header-left {
         width: 100%;
         justify-content: flex-start;
+        gap: 0.5rem;
     }
 
     .header-right {
-        width: 100%;
-        justify-content: space-between;
-        padding-left: 3rem; /* Align with logo text */
+        display: none; /* Hide entire right section (theme toggle + date) on mobile */
     }
     
     .logo-text {
-        font-size: 1.25rem;
+        font-size: 1.1rem; /* Slightly smaller for better fit */
+        white-space: normal; /* Allow wrapping */
+        overflow: visible; /* Show full text */
+        text-overflow: clip; /* Remove ellipsis */
+        max-width: 100%; /* Use full width */
+        line-height: 1.2;
+    }
+
+    .logo-subtitle {
+        display: none; /* Hide subtitle to save space */
     }
 }
 
