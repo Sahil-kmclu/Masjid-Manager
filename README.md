@@ -33,7 +33,7 @@ A modern, responsive web application built with React to manage monthly donation
 
 1. **Navigate to the project directory:**
    ```bash
-   cd "d:\Localmart app antigravity\masjid app"
+   cd "D:\sahil application\masjid app"
    ```
 
 2. **Install dependencies:**
