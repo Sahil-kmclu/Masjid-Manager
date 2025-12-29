@@ -1,262 +1,199 @@
-# Masjid Manager Tracking System 🕌
+# Masjid Manager - The Complete Digital Mosque Management Solution 🕌
 
-A modern, responsive web application built with React to manage monthly donations for the masjid imam's salary. Track members, record payments, and send automated reminders for pending donations.
-
-## ✨ Features
-
-### Core Functionality
-- **Member Management**: Add, edit, view, and delete member records
-- **Payment Tracking**: Record monthly payments with date and notes
-- **Dashboard Analytics**: View statistics, collection summaries, and payment completion rates
-- **Pending Payments**: Automatically identify members with pending payments
-- **Search & Filter**: Search members by name or phone, filter payments by month
-- **Payment History**: View complete payment history for each member
-
-### Notification System
-- **WhatsApp Reminders**: Send individual or bulk WhatsApp messages to members with pending payments
-- **SMS Alerts**: Send SMS reminders directly from the app
-- **Pre-filled Messages**: Automated message templates for quick sending
-
-### Technical Features
-- **LocalStorage**: Data persists in browser (no server required for basic use)
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Modern UI**: Premium dark theme with glassmorphism effects and smooth animations
-- **Real-time Updates**: Instant UI updates when data changes
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (version 16 or higher)
-- npm or yarn package manager
-
-### Installation
-
-1. **Navigate to the project directory:**
-   ```bash
-   cd "D:\sahil application\masjid app"
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Open your browser and visit:**
-   ```
-   http://localhost:5173
-   ```
-
-## 📱 How to Use
-
-### Adding Members
-1. Navigate to "Add Member" from the sidebar
-2. Fill in member details:
-   - Name (required)
-   - Phone number (required, 10 digits)
-   - Email (optional)
-   - Monthly contribution amount (required)
-   - Address (optional)
-3. Click "Add Member"
-
-### Recording Payments
-1. Go to "Record Payment" section
-2. Select a member from the dropdown
-3. Choose the payment month and date
-4. Amount is auto-filled based on member's monthly contribution
-5. Add optional notes
-6. Click "Record Payment"
-
-### Viewing Pending Payments
-1. Go to "Pending Payments" section
-2. Select the month you want to check
-3. View list of members who haven't paid
-4. Send individual WhatsApp/SMS reminders by clicking the buttons
-5. Or use "Send WhatsApp Reminders to All" for bulk messaging
-
-### Managing Members
-1. Navigate to "Members" section
-2. Search for members using the search box
-3. Click the arrow (▼) to view member details and payment history
-4. Use the edit (✏️) button to modify member information
-5. Use the pending slip (📄) button to send payment reminders
-6. Use the delete (🗑️) button to remove a member
-
-### Admin Panel
-1. Go to "Admin Panel" from the sidebar
-2. View system statistics (members, payments, total collected)
-3. Configure system settings:
-   - Masjid name
-   - Default monthly amount
-   - Contact information
-   - Admin password
-4. Export data: Download complete backup as JSON file
-5. Import data: Restore from backup file
-6. Clear all data: Complete system reset (use with caution!)
-
-## 📊 Dashboard Overview
-
-The dashboard provides:
-- **Total Members**: Count of all registered members
-- **Paid This Month**: Members who have paid for the current month
-- **Pending Members**: Members with pending payments
-- **Completion Rate**: Percentage of expected donations received
-- **Monthly Collection**: Expected vs collected vs pending amounts
-- **Recent Payments**: Last 5 payment records
-
-## 🔔 Setting Up Automated Notifications
-
-Currently, the app uses WhatsApp Web/App and SMS app integration which requires manual sending. For fully automated alerts:
-
-### Option 1: WhatsApp Business API (Recommended)
-1. Sign up for WhatsApp Business API through providers like:
-   - Twilio: https://www.twilio.com/whatsapp
-   - MessageBird: https://www.messagebird.com/
-   - Vonage: https://www.vonage.com/
-   
-2. Get your API credentials (Account SID, Auth Token, WhatsApp number)
-
-3. Create a backend service (Node.js/PHP) to:
-   - Schedule monthly reminders
-   - Send messages automatically via API
-   - Store message logs
-
-### Option 2: SMS Gateway
-1. Sign up for SMS service:
-   - Twilio SMS: https://www.twilio.com/sms
-   - MSG91: https://msg91.com/
-   - Fast2SMS: https://www.fast2sms.com/
-
-2. Get API credentials
-
-3. Integrate with a backend service for automated sending
-
-### Sample Backend Integration (Node.js + Twilio)
-```javascript
-// Example code for automated WhatsApp messages
-const twilio = require('twilio');
-const client = new twilio('YOUR_ACCOUNT_SID', 'YOUR_AUTH_TOKEN');
-
-async function sendWhatsAppReminder(phoneNumber, name, amount, month) {
-  await client.messages.create({
-    from: 'whatsapp:+14155238886', // Twilio Sandbox number
-    to: `whatsapp:+${phoneNumber}`,
-    body: `Assalamu Alaikum ${name},\n\nThis is a friendly reminder about your monthly donation for ${month}.\n\nAmount: ₹${amount}\n\nJazakAllah Khair!`
-  });
-}
-```
-
-## 🛠️ Data Management
-
-### Export Data
-To export your data:
-1. Open browser console (F12)
-2. Run:
-   ```javascript
-   localStorage.getItem('masjid_members')
-   localStorage.getItem('masjid_payments')
-   ```
-3. Copy and save the JSON data
-
-### Import Data
-To import data:
-1. Open browser console (F12)
-2. Run:
-   ```javascript
-   localStorage.setItem('masjid_members', 'YOUR_JSON_DATA')
-   localStorage.setItem('masjid_payments', 'YOUR_JSON_DATA')
-   ```
-3. Refresh the page
-
-### Backup Recommendations
-- Regularly export your data and save to a file
-- Consider setting up a backend database (MySQL/PostgreSQL) for production use
-- Use cloud storage solutions for automatic backups
-
-## 🚀 Deployment Options
-
-### Option 1: Vercel (Recommended)
-1. Push code to GitHub
-2. Connect to Vercel
-3. Deploy with one click
-
-### Option 2: Netlify
-1. Push code to GitHub
-2. Connect to Netlify
-3. Configure build settings:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-
-### Option 3: GitHub Pages
-```bash
-npm run build
-# Upload the 'dist' folder to GitHub Pages
-```
-
-### Option 4: Local Hosting
-```bash
-npm run build
-# Serve the 'dist' folder with any web server
-```
-
-## 📁 Project Structure
-
-```
-masjid-app/
-├── src/
-│   ├── components/
-│   │   ├── Header.jsx          # Top navigation bar
-│   │   ├── Sidebar.jsx         # Side navigation menu
-│   │   ├── Dashboard.jsx       # Analytics dashboard
-│   │   ├── MemberList.jsx      # Member management table
-│   │   ├── AddMember.jsx       # Add new member form
-│   │   ├── RecordPayment.jsx   # Payment recording form
-│   │   └── PendingPayments.jsx # Pending payments list
-│   ├── App.jsx                  # Main app component
-│   ├── App.css                  # App-specific styles
-│   ├── index.css                # Global styles & design system
-│   └── main.jsx                 # Entry point
-├── index.html
-├── package.json
-└── README.md
-```
-
-## 🎨 Design Features
-
-- **Premium Dark Theme**: Modern dark color scheme with purple/blue gradients
-- **Glassmorphism**: Frosted glass effect on cards and overlays
-- **Smooth Animations**: Micro-interactions and transitions
-- **Responsive Layout**: Mobile-first design approach
-- **Accessibility**: Semantic HTML and keyboard navigation support
-
-## 🔒 Privacy & Security
-
-- All data is stored locally in your browser
-- No data is sent to external servers
-- Clear your browser data to reset the application
-- For production use, implement proper authentication and authorization
-- Consider HTTPS for deployed versions
-
-## 📞 Support & Contribution
-
-For questions or improvements:
-1. Review the code and submit pull requests
-2. Report issues or bugs
-3. Suggest new features
-4. Share with other masjid committees
-
-## 📝 License
-
-This project is open source and available for free use by masjid committees and Islamic organizations.
-
-## 🤲 Prayer
-
-May Allah accept this effort and make it beneficial for the Muslim community. Ameen.
+**Version**: 2.0  
+**Status**: Production Ready  
+**Platform**: Web Application (React.js)
 
 ---
 
-**Built with ❤️ for the Muslim Community**
+## 📋 Table of Contents
+
+1.  [Executive Summary](#-executive-summary)
+2.  [Why Masjid Manager?](#-why-masjid-manager)
+3.  [Core Features & Modules](#-core-features--modules)
+    *   [Real-time Dashboard Analytics](#1-real-time-dashboard-analytics)
+    *   [Member Management System](#2-member-management-system)
+    *   [Imam Salary & Payroll](#3-imam-salary--payroll)
+    *   [Financial Accounting (Income & Expenses)](#4-financial-accounting-income--expenses)
+    *   [Security & Administration](#5-security--administration)
+4.  [Operational Workflows (User Manual)](#-operational-workflows-user-manual)
+    *   [Managing Members & Collections](#scenario-1-managing-members--monthly-collections)
+    *   [Processing Imam Salaries](#scenario-2-processing-imam-salaries)
+    *   [Handling Security & Deletions](#scenario-3-handling-security--deletions)
+5.  [Technical Architecture](#-technical-architecture)
+6.  [Installation & Setup](#-installation--setup)
+7.  [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
+
+---
+
+## 🚀 Executive Summary
+
+**Masjid Manager** is a sophisticated, purpose-built software solution designed to modernize the administrative and financial operations of Mosques (Masjids). In an era where transparency and efficiency are paramount, relying on paper registers and manual receipts is no longer sufficient.
+
+This application bridges the gap by providing a **digital, secure, and Offline-first** platform. It allows Mosque committees to track every rupee collected, manage member subscriptions, ensure timely salary payments to Imams, and maintain a crystal-clear record of all expenses. Built with modern web technologies, it offers the power of an enterprise ERP system with the simplicity required for daily use by volunteers and staff.
+
+---
+
+## 💡 Why Masjid Manager?
+
+Traditional management methods often suffer from:
+*   **Loss of Data**: Physical registers can be lost, damaged, or degraded over time.
+*   **Calculation Errors**: Manual totaling of monthly collections is prone to human error.
+*   **Lack of Transparency**: It is difficult to instantly generate reports for the community.
+*   **Communication Gaps**: Members often forget to pay dues, and sending manual reminders is tedious.
+
+**Masjid Manager solves these problems by offering:**
+1.  **Zero-Calculation Errors**: Automated totaling of all income, expenses, and pending dues.
+2.  **Instant Receipts**: Generate professional PDF receipts instantly for every transaction.
+3.  **WhatsApp Integration**: Send receipts and polite payment reminders directly to members' phones.
+4.  **Data Privacy**: All data is stored locally on your device. No cloud servers, no data leaks.
+5.  **Multi-Language Support**: Fully accessible in **English, Hindi, and Urdu** to serve diverse committees.
+
+---
+
+## 🌟 Core Features & Modules
+
+### 1. Real-time Dashboard Analytics
+The Dashboard is the command center of the application. It provides an immediate health check of the Mosque's finances.
+*   **Financial Overview Cards**: Instantly see Total Collection vs. Expected Collection for the current month.
+*   **Member Statistics**: Visual breakdown of Total Members, Paid Members, and Pending Members.
+*   **Recent Activity Feed**: A live ticker showing the most recent transactions (payments, expenses, new members) to help administrators catch up quickly.
+*   **Fiscal Year Tracking**: Keeps data organized by month and year for accurate historical reporting.
+
+### 2. Member Management System
+A complete CRM (Customer Relationship Management) system tailored for Mosque members.
+*   **Digital Directory**: Store comprehensive details: Name, Phone, Address, Joining Date, and Monthly Commitment Amount.
+*   **Smart Search**: Instantly find any member by typing part of their name or phone number.
+*   **Payment History**: Click on any member to view their entire financial history since joining.
+*   **Auto-Pending Calculation**: The system automatically calculates how many months a member is behind on payments based on their joining date and monthly commitment.
+*   **One-Click Reminders**: Send a pre-formatted WhatsApp message to members with pending dues directly from their profile.
+
+### 3. Imam Salary & Payroll
+A dedicated module to ensure the Imam is paid on time and transparently.
+*   **Salary Fund Collection**: Track specific contributions made by members towards the Imam's salary (separate from general maintenance funds).
+*   **Imam Profiles**: Manage profiles for multiple Imams (e.g., Head Imam, Assistant Imam, Muezzin) with their specific salary structures.
+*   **Payroll Processing**:
+    *   Select the Imam and the Month (e.g., "Ramadan 2024").
+    *   System records the payout and deducts it from the available funds.
+    *   **PDF Receipts**: Generates a specialized "Salary Payment Receipt" that can be signed and stored digitally or physically.
+    *   **WhatsApp Sharing**: Send the digital receipt directly to the Imam's phone for their records.
+
+### 4. Financial Accounting (Income & Expenses)
+Beyond member fees, a Mosque has dynamic financial flows.
+*   **Mosque Income**: Record generic donations, Friday (Jumu'ah) collections, event fundraisers, or donation box openings.
+*   **Expense Tracking**: detailed logging of operational costs:
+    *   Electricity & Water Bills.
+    *   Maintenance & Repairs.
+    *   Cleaning Supplies.
+    *   Event Costs.
+*   **Balance Sheet**: The system maintains a running total of all inflows and outflows to show the current "Cash in Hand".
+
+### 5. Security & Administration
+Security is built into the workflow to prevent accidents and unauthorized changes.
+*   **Simulated OTP Verification**: 
+    *   **The Problem**: Accidental deletion of payment records can cause financial discrepancies.
+    *   **The Solution**: Critical actions (Deleting a payment, Editing a member profile, Removing an expense) trigger an OTP challenge.
+    *   **The Mechanism**: The system simulates an SMS sent to the registered mobile number of the entity (Member/Imam). The admin must enter this 4-digit code to proceed. This enforces a "Think Twice" policy.
+*   **Recycle Bin**: Deleted items are not gone forever. They move to a holding area where they can be **Restored** if deleted by mistake, or **Permanently Deleted** for cleanup.
+*   **Super Admin Settings**:
+    *   Set the Admin Password.
+    *   Customize Mosque Name and Address (for receipts).
+    *   Switch Themes (Dark/Light Mode).
+
+---
+
+## 📖 Operational Workflows (User Manual)
+
+### Scenario 1: Managing Members & Monthly Collections
+**Goal**: Record a monthly fee from a member.
+1.  Navigate to the **"Record Payment"** or **"Members"** tab.
+2.  Search for the member.
+3.  Click the **"View/Pay"** icon.
+4.  Select the Month(s) they are paying for.
+5.  Enter the Amount (System suggests the amount based on their commitment).
+6.  Click **"Save"**.
+7.  *Optional*: Click the **WhatsApp** icon to send them the receipt immediately.
+
+### Scenario 2: Processing Imam Salaries
+**Goal**: Pay the Imam for the month of October.
+1.  Go to **"Pay Imam"**.
+2.  Select the Imam from the dropdown.
+3.  Select "October" from the month picker.
+4.  Enter the Salary Amount.
+5.  Click **"Save Payment"**.
+6.  The system generates a **Salary Receipt**.
+7.  Click **"Download PDF"** to save a copy for the audit file.
+8.  Click **"Share"** to WhatsApp the receipt to the Imam.
+
+### Scenario 3: Handling Security & Deletions
+**Goal**: A payment was recorded on the wrong member and needs deletion.
+1.  Locate the payment in the member's history.
+2.  Click the **Delete (Trash)** icon.
+3.  **Security Trigger**: A popup appears: *"Sending OTP to +91 98765xxxxx"*.
+4.  An alert displays the code (e.g., "1234").
+5.  Enter "1234" into the verification box.
+6.  Confirm.
+7.  The record is moved to the **Recycle Bin** (it can still be recovered if needed).
+
+---
+
+## 🏗 Technical Architecture
+
+*   **Frontend Framework**: React.js (Vite) for lightning-fast performance.
+*   **State Management**: React Hooks (useState, useEffect, useMemo) for responsive data handling.
+*   **Data Persistence**: **LocalStorage API**.
+    *   *Note*: The application runs entirely in the browser. It does not require a backend server or database connection. This ensures that the application can run **Offline** and is extremely fast.
+    *   *Data Safety*: Since data is stored in the browser, clearing the browser cache will remove the data. Regular backups (coming soon) are recommended.
+*   **PDF Generation**: `jsPDF` library for client-side rendering of high-quality receipts.
+*   **Styling**: Custom CSS with CSS Variables for seamless Dark/Light mode switching.
+
+---
+
+## 💻 Installation & Setup
+
+Since this is a web-based application, it can be hosted on any static file server or run locally.
+
+### Prerequisites
+*   Node.js (v14 or higher)
+*   npm (Node Package Manager)
+
+### Steps to Run Locally
+1.  **Clone/Download the Repository**:
+    ```bash
+    git clone https://github.com/your-repo/masjid-manager.git
+    cd masjid-manager
+    ```
+2.  **Install Dependencies**:
+    ```bash
+    npm install
+    ```
+3.  **Start Development Server**:
+    ```bash
+    npm run dev
+    ```
+4.  **Open in Browser**:
+    Navigate to `http://localhost:5173` (or the port shown in the terminal).
+
+---
+
+## ❓ Frequently Asked Questions (FAQ)
+
+**Q: Do I need the internet to use this app?**  
+A: No! Once the app is loaded, it works entirely offline. Internet is only required if you want to send WhatsApp messages.
+
+**Q: Where is my data stored?**  
+A: All data is stored securely in your browser's Local Storage on your specific device. We do not see or store your data on any cloud server.
+
+**Q: What happens if I accidentally delete a member?**  
+A: Don't panic! Go to the **Recycle Bin** tab. You will find the deleted member there and can restore them with one click.
+
+**Q: Can I use this on my mobile phone?**  
+A: Yes, the application is fully responsive and works perfectly on mobile browsers (Chrome, Safari, etc.).
+
+**Q: How does the OTP work if I don't have an SMS plan?**  
+A: The OTP is a "Simulated" security feature. It does not send a real SMS through a telecom network. It generates a code and displays it on the screen to ensure the user is physically present and confirming the action consciously.
+
+---
+
+**Developed with ❤️ to serve the Community.**
+
