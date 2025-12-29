@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { verifyOTP } from '../utils/otp';
 
 function MosqueProfile({ user, onUpdateProfile }) {
     const { t } = useTranslation();
@@ -44,23 +45,15 @@ function MosqueProfile({ user, onUpdateProfile }) {
         }
     }, [user]);
 
-    const handleDeleteRequest = () => {
+    const handleDeleteRequest = async () => {
         if (!user.phone) {
             alert('Please add a phone number to your profile first to receive OTP.');
             return;
         }
 
-        // 1. Generate OTP
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        const isVerified = await verifyOTP(user.phone, 'request account deletion');
         
-        // 2. Simulate sending OTP
-        alert(`[SIMULATED SMS] Your OTP for Account Deletion Request is: ${otp}`);
-
-        // 3. Prompt for OTP
-        const inputOtp = window.prompt(`Enter the OTP sent to ${user.phone}:`);
-
-        // 4. Verify
-        if (inputOtp === otp) {
+        if (isVerified) {
             // Save request
             const requests = JSON.parse(localStorage.getItem('deletion_requests') || '[]');
             
@@ -83,10 +76,6 @@ function MosqueProfile({ user, onUpdateProfile }) {
             localStorage.setItem('deletion_requests', JSON.stringify([...requests, newRequest]));
             setHasPendingDeletion(true);
             alert('Deletion request sent to Super Admin successfully.');
-        } else {
-            if (inputOtp !== null) { // If user didn't cancel
-                alert('Invalid OTP. Deletion request cancelled.');
-            }
         }
     };
 
@@ -98,7 +87,7 @@ function MosqueProfile({ user, onUpdateProfile }) {
         if (message.text) setMessage({ type: '', text: '' });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (!formData.name.trim()) {
@@ -112,6 +101,15 @@ function MosqueProfile({ user, onUpdateProfile }) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
+
+        // Verify OTP with current registered phone (before update)
+        // If user has no phone, we can't verify, but maybe allow if it's the first setup?
+        // Assuming user.phone exists if they are logged in and it's a critical action.
+        // If user.phone is empty, verifyOTP handles the alert.
+        const phoneToVerify = user.phone || formData.phone; // Fallback to new phone if old is empty (first time setup)
+        
+        const isVerified = await verifyOTP(phoneToVerify, 'update mosque profile');
+        if (!isVerified) return;
 
         onUpdateProfile({
             ...user,

@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import jsPDF from 'jspdf';
+import { verifyOTP } from '../utils/otp';
 import './ImamSalary.css';
 
 function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDeleteImam, onAddPayout, onDeletePayout, isReadOnly }) {
@@ -29,7 +31,7 @@ function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDele
         joiningDate: new Date().toISOString().split('T')[0]
     });
 
-    const handleImamSubmit = (e) => {
+    const handleImamSubmit = async (e) => {
         e.preventDefault();
         const data = {
             ...imamFormData,
@@ -37,6 +39,8 @@ function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDele
         };
 
         if (editingImam) {
+            const isVerified = await verifyOTP(editingImam.mobile, 'update this Imam profile');
+            if (!isVerified) return;
             onUpdateImam(editingImam.id, data);
         } else {
             onAddImam(data);
@@ -211,6 +215,105 @@ function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDele
     // Get min month for input (joining date)
     const minMonth = selectedImam ? selectedImam.joiningDate.slice(0, 7) : '';
 
+    const generateReceipt = (payout, imam) => {
+        const doc = new jsPDF();
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        const mosqueName = currentUser.name || 'Mosque Payment Receipt';
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(40, 40, 40);
+        doc.text(mosqueName, 105, 20, { align: 'center' });
+        
+        doc.setFontSize(16);
+        doc.text('Salary Payment Receipt', 105, 30, { align: 'center' });
+        
+        // Date
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 40, { align: 'center' });
+        
+        // Line
+        doc.setLineWidth(0.5);
+        doc.line(20, 45, 190, 45);
+        
+        // Details
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        
+        let y = 60;
+        const addLine = (label, value) => {
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${label}:`, 20, y);
+            doc.setFont('helvetica', 'normal');
+            doc.text(String(value || '-'), 70, y);
+            y += 10;
+        };
+        
+        addLine('Receipt No', payout.id.slice(-6).toUpperCase());
+        addLine('Payment Date', new Date(payout.paymentDate).toLocaleDateString());
+        addLine('Imam Name', imam.name);
+        addLine('Mobile', imam.mobile);
+        addLine('Salary Month', formatMonth(payout.month));
+        addLine('Amount Paid', `Rs. ${parseFloat(payout.amount).toLocaleString()}`);
+        if (payout.notes) {
+            addLine('Notes', payout.notes);
+        }
+        
+        // Footer
+        doc.setLineWidth(0.5);
+        doc.line(20, y + 20, 190, y + 20);
+        
+        doc.setFontSize(10);
+        doc.text('Authorized Signature', 150, y + 30, { align: 'center' });
+        doc.text('Receiver Signature', 50, y + 30, { align: 'center' });
+        
+        doc.save(`Salary_Receipt_${imam.name}_${payout.month}.pdf`);
+    };
+
+    const shareViaWhatsApp = (payout, imam) => {
+        // First download the PDF
+        generateReceipt(payout, imam);
+        
+        // Show instruction
+        alert(t('PDF Receipt downloaded. Please attach it to the WhatsApp message.'));
+        
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        const mosqueName = currentUser.name || t('Mosque Payment');
+        
+        const message = encodeURIComponent(
+            `*${mosqueName} - ${t('Salary Payment')}*\n\n` +
+            `${t('Imam Name')}: ${imam.name}\n` +
+            `${t('Month')}: ${formatMonth(payout.month)}\n` +
+            `${t('Amount Paid')}: Rs. ${parseFloat(payout.amount).toLocaleString()}\n` +
+            `${t('Date')}: ${new Date(payout.paymentDate).toLocaleDateString()}\n\n` +
+            `${t('Payment receipt attached.')}`
+        );
+        
+        const url = imam.mobile 
+            ? `https://wa.me/${imam.mobile.length === 10 ? '91' + imam.mobile : imam.mobile}?text=${message}`
+            : `https://wa.me/?text=${message}`;
+            
+        window.open(url, '_blank');
+    };
+
+    const handleDeleteImam = async (imam) => {
+        const isVerified = await verifyOTP(imam.mobile, 'delete this Imam profile');
+        if (isVerified) {
+            onDeleteImam(imam.id);
+        }
+    };
+
+    const handleDeletePayout = async (payout) => {
+        // Verify with the selected Imam's phone (since we are in their view)
+        const phoneToVerify = selectedImam?.mobile;
+        
+        const isVerified = await verifyOTP(phoneToVerify, 'delete this salary payment record');
+        if (isVerified) {
+            onDeletePayout(payout.id);
+        }
+    };
+
     return (
         <div className="imam-salary fade-in">
             <div className="page-header">
@@ -336,7 +439,7 @@ function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDele
                                         <div className="card-actions">
                                             <button onClick={() => startEditImam(imam)} title={t("Edit")}>✏️</button>
                                             <button 
-                                                onClick={() => onDeleteImam(imam.id)} 
+                                                onClick={() => handleDeleteImam(imam)} 
                                                 title={t("Delete")}
                                                 className="delete-btn"
                                             >🗑️</button>
@@ -532,14 +635,26 @@ function PayImam({ imams = [], imamPayouts = [], onAddImam, onUpdateImam, onDele
                                                 <td>{new Date(payout.paymentDate).toLocaleDateString()}</td>
                                                 <td>{payout.notes || '-'}</td>
                                                 <td>
+                                                    <button
+                                                        className="btn btn-sm btn-secondary"
+                                                        onClick={() => generateReceipt(payout, selectedImam)}
+                                                        title={t('Download Voucher')}
+                                                        style={{ marginRight: '5px' }}
+                                                    >
+                                                        📄
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-success"
+                                                        onClick={() => shareViaWhatsApp(payout, selectedImam)}
+                                                        title={t('Share via WhatsApp')}
+                                                        style={{ marginRight: '5px', backgroundColor: '#25D366', borderColor: '#25D366', color: 'white' }}
+                                                    >
+                                                        📱
+                                                    </button>
                                                     {!isReadOnly && (
                                                         <button 
-                                                            className="action-btn delete-btn"
-                                                            onClick={() => {
-                                                                if(window.confirm(t('Are you sure you want to delete this record?'))) {
-                                                                    onDeletePayout(payout.id);
-                                                                }
-                                                            }}
+                                                            className="btn btn-sm btn-danger"
+                                                            onClick={() => handleDeletePayout(payout)}
                                                             title={t('Delete')}
                                                         >
                                                             🗑️

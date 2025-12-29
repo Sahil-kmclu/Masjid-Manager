@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { verifyOTP } from '../utils/otp';
 import './Expenses.css';
 
 function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
@@ -77,6 +78,17 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
         const cats = new Set((expenses || []).map(expense => expense.category || 'Other'));
         return Array.from(cats).sort();
     }, [expenses]);
+
+    const handleDelete = async (expense) => {
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        // Expenses usually don't have a phone number, so we use the admin's phone
+        const phoneToVerify = currentUser.phone;
+        
+        const isVerified = await verifyOTP(phoneToVerify, 'delete this expense record');
+        if (isVerified) {
+            onDeleteExpense(expense.id);
+        }
+    };
 
     return (
         <div className="expenses fade-in">
@@ -215,7 +227,7 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                                             {!isReadOnly && (
                                                 <button
                                                     className="btn btn-sm btn-danger"
-                                                    onClick={() => onDeleteExpense(expense.id)}
+                                                    onClick={() => handleDelete(expense)}
                                                     title={t('Delete Expense')}
                                                 >
                                                     🗑️

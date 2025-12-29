@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
+import { verifyOTP } from '../utils/otp';
 import './MosqueIncome.css';
 
 function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
@@ -154,6 +155,16 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
         window.open(url, '_blank');
     };
 
+    const handleDelete = async (income) => {
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        const phoneToVerify = income.mobileNumber || currentUser.phone;
+        
+        const isVerified = await verifyOTP(phoneToVerify, 'delete this income record');
+        if (isVerified) {
+            onDeleteIncome(income.id);
+        }
+    };
+
     return (
         <div className="mosque-income fade-in">
             <div className="page-header">
@@ -301,7 +312,7 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                                                 </button>
                                                 <button
                                                     className="btn btn-sm btn-danger"
-                                                    onClick={() => onDeleteIncome(income.id)}
+                                                    onClick={() => handleDelete(income)}
                                                     title={t('Delete Income Record')}
                                                 >
                                                     🗑️

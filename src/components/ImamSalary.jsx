@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
+import { verifyOTP } from '../utils/otp';
 import './ImamSalary.css';
 
 function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }) {
@@ -197,6 +198,19 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
         window.open(url, '_blank');
     };
 
+    const handleDelete = async (payment) => {
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        // Use member phone if available, otherwise admin phone
+        const phoneToVerify = (payment.memberPhone && payment.memberPhone !== '-') 
+            ? payment.memberPhone 
+            : currentUser.phone;
+        
+        const isVerified = await verifyOTP(phoneToVerify, 'delete this salary payment');
+        if (isVerified) {
+            onDeletePayment(payment.id);
+        }
+    };
+
     return (
         <div className="imam-salary fade-in">
             <div className="page-header">
@@ -359,7 +373,7 @@ function ImamSalary({ members, imamSalaryPayments, onDeletePayment, isReadOnly }
                                             {!isReadOnly && (
                                                 <button
                                                     className="btn btn-sm btn-danger"
-                                                    onClick={() => onDeletePayment(payment.id)}
+                                                    onClick={() => handleDelete(payment)}
                                                     title={t('Delete Payment')}
                                                 >
                                                     🗑️

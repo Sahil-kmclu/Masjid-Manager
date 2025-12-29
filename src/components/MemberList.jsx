@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './MemberList.css';
 import { generatePaymentReceipt, generatePendingSlip, sendWhatsAppMessage, calculatePendingMonths, generatePendingSlipPDF } from '../utils/receiptGenerator';
+import { verifyOTP } from '../utils/otp';
 
 function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUpdateMember, onDeleteMember, onDeletePayment, onDeleteImamSalaryPayment, isReadOnly, user }) {
     const { t } = useTranslation();
@@ -141,10 +142,35 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
         window.history.pushState({ modal: 'view-member' }, '', '');
     };
 
-    const handleSaveEdit = () => {
-        onUpdateMember(editData.id, editData);
-        alert(t('Member updated successfully!'));
-        window.history.back();
+    const handleSaveEdit = async () => {
+        const isVerified = await verifyOTP(editData.phone, 'update this member profile');
+        if (isVerified) {
+            onUpdateMember(editData.id, editData);
+            alert(t('Member updated successfully!'));
+            window.history.back();
+        }
+    };
+
+    const handleDeleteMemberWrapper = async (member) => {
+        const isVerified = await verifyOTP(member.phone, 'delete this member');
+        if (isVerified) {
+            onDeleteMember(member.id);
+        }
+    };
+
+    const handleDeletePaymentWrapper = async (payment, member) => {
+        const isVerified = await verifyOTP(member.phone, 'delete this payment record');
+        if (isVerified) {
+            onDeletePayment(payment.id);
+            // We might need to refresh or force re-render, but props change should handle it
+        }
+    };
+
+    const handleDeleteImamSalaryPaymentWrapper = async (payment, member) => {
+        const isVerified = await verifyOTP(member.phone, 'delete this imam salary payment');
+        if (isVerified) {
+            onDeleteImamSalaryPayment(payment.id);
+        }
     };
 
     const handleCancelEdit = () => {
@@ -320,7 +346,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                                 </button>
                                                                 <button 
                                                                     className="action-btn delete-btn" 
-                                                                    onClick={() => onDeleteMember(member.id)}
+                                                                    onClick={() => handleDeleteMemberWrapper(member)}
                                                                     title={t("Delete Member")}
                                                                     style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
                                                                 >
@@ -400,9 +426,20 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                             <div className="history-list" style={{ maxHeight: '150px', overflowY: 'auto' }}>
                                                 {paymentsList.length > 0 ? (
                                                     paymentsList.slice(0, 5).map(p => (
-                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
                                                             <span>{new Date(p.month + '-01').toLocaleDateString('default', { month: 'long', year: 'numeric' })}</span>
-                                                            <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
+                                                                {!isReadOnly && (
+                                                                    <button 
+                                                                        onClick={() => handleDeletePaymentWrapper(p, selectedMember)}
+                                                                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
+                                                                        title={t('Delete Payment')}
+                                                                    >
+                                                                        🗑️
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     ))
                                                 ) : (
@@ -416,9 +453,20 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                             <div className="history-list" style={{ maxHeight: '150px', overflowY: 'auto' }}>
                                                 {imamSalaryList.length > 0 ? (
                                                     imamSalaryList.slice(0, 5).map(p => (
-                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
                                                             <span>{new Date(p.month + '-01').toLocaleDateString('default', { month: 'long', year: 'numeric' })}</span>
-                                                            <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
+                                                                {!isReadOnly && (
+                                                                    <button 
+                                                                        onClick={() => handleDeleteImamSalaryPaymentWrapper(p, selectedMember)}
+                                                                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
+                                                                        title={t('Delete Payment')}
+                                                                    >
+                                                                        🗑️
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     ))
                                                 ) : (
