@@ -80,6 +80,20 @@
     }
 }
 
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.text-sm {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
+
+.donor-name {
+    font-weight: 600;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

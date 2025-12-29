@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import jsPDF from 'jspdf';
 import './MosqueIncome.css';
 
 function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
@@ -77,6 +78,81 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
         const cats = new Set(mosqueIncome.map(income => income.category || 'Other'));
         return Array.from(cats).sort();
     }, [mosqueIncome]);
+
+    const generateReceipt = (income) => {
+        const doc = new jsPDF();
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        const mosqueName = currentUser.name || 'Mosque Receipt';
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(40, 40, 40);
+        doc.text(mosqueName, 105, 20, { align: 'center' });
+        
+        // Date
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+        
+        // Line
+        doc.setLineWidth(0.5);
+        doc.line(20, 35, 190, 35);
+        
+        // Details
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        
+        let y = 50;
+        const addLine = (label, value) => {
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${label}:`, 20, y);
+            doc.setFont('helvetica', 'normal');
+            doc.text(String(value || '-'), 70, y);
+            y += 10;
+        };
+        
+        addLine('Receipt No', income.id.slice(-6).toUpperCase());
+        addLine('Date', new Date(income.date).toLocaleDateString());
+        addLine('Name', income.donorName);
+        addLine('Mobile Number', income.mobileNumber);
+        addLine('Address', income.address);
+        addLine('Category', income.category);
+        addLine('Source', income.source);
+        addLine('Amount', `Rs. ${parseFloat(income.amount).toLocaleString()}`);
+        if (income.description) {
+            addLine('Description', income.description);
+        }
+        
+        // Footer
+        doc.setLineWidth(0.5);
+        doc.line(20, y + 10, 190, y + 10);
+        
+        doc.setFontSize(10);
+        doc.text('Thank you for your contribution!', 105, y + 25, { align: 'center' });
+        
+        doc.save(`Receipt_${income.donorName || 'Donor'}_${income.date}.pdf`);
+    };
+
+    const shareViaWhatsApp = (income) => {
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        const mosqueName = currentUser.name || t('Mosque Receipt');
+        
+        const message = encodeURIComponent(
+            `*${mosqueName}*\n\n` +
+            `${t('Date')}: ${new Date(income.date).toLocaleDateString()}\n` +
+            `${t('Receipt No')}: ${income.id.slice(-6).toUpperCase()}\n` +
+            `${t('Name')}: ${income.donorName || '-'}\n` +
+            `${t('Amount')}: Rs. ${parseFloat(income.amount).toLocaleString()}\n` +
+            `${t('Category')}: ${t(income.category)}\n\n` +
+            `${t('Thank you for your contribution!')}`
+        );
+        
+        const url = income.mobileNumber 
+            ? `https://wa.me/${income.mobileNumber.length === 10 ? '91' + income.mobileNumber : income.mobileNumber}?text=${message}`
+            : `https://wa.me/?text=${message}`;
+            
+        window.open(url, '_blank');
+    };
 
     return (
         <div className="mosque-income fade-in">
@@ -169,11 +245,11 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                     <table>
                         <thead>
                             <tr>
+                                <th>{t('Donor')}</th>
                                 <th>{t('Source')}</th>
                                 <th>{t('Category')}</th>
                                 <th>{t('Amount')}</th>
                                 <th>{t('Date')}</th>
-                                <th>{t('Description')}</th>
                                 <th>{t('Actions')}</th>
                             </tr>
                         </thead>
@@ -190,7 +266,12 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                                 filteredIncome.map((income) => (
                                     <tr key={income.id}>
                                         <td>
+                                            <div className="donor-name">{income.donorName || '-'}</div>
+                                            {income.mobileNumber && <div className="text-muted text-sm">{income.mobileNumber}</div>}
+                                        </td>
+                                        <td>
                                             <div className="income-source">{income.source}</div>
+                                            {income.description && <div className="text-muted text-sm">{income.description}</div>}
                                         </td>
                                         <td>
                                             <span className="badge badge-primary">{t(income.category || 'Other')}</span>
@@ -201,15 +282,31 @@ function MosqueIncome({ mosqueIncome, onDeleteIncome, isReadOnly }) {
                                         <td>
                                             {new Date(income.date).toLocaleDateString()}
                                         </td>
-                                        <td>{income.description || '-'}</td>
                                         <td>
-                                            <button
-                                                className="btn btn-sm btn-danger"
-                                                onClick={() => onDeleteIncome(income.id)}
-                                                title={t('Delete Income Record')}
-                                            >
-                                                🗑️
-                                            </button>
+                                            <div className="action-buttons">
+                                                <button
+                                                    className="btn btn-sm btn-secondary"
+                                                    onClick={() => generateReceipt(income)}
+                                                    title={t('Download Receipt')}
+                                                >
+                                                    🖨️
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-success"
+                                                    onClick={() => shareViaWhatsApp(income)}
+                                                    title={t('Share via WhatsApp')}
+                                                    style={{ backgroundColor: '#25D366', borderColor: '#25D366', color: 'white' }}
+                                                >
+                                                    💬
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-danger"
+                                                    onClick={() => onDeleteIncome(income.id)}
+                                                    title={t('Delete Income Record')}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

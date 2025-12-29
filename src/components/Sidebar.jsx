@@ -28,8 +28,8 @@ function Sidebar({ currentView, onNavigate, isOpen, onClose, isReadOnly, onLogou
         { id: 'mosque-income', label: 'Mosque Income', icon: '📊', group: 'Income' },
         { id: 'add-mosque-income', label: 'Add Income', icon: '➕', group: 'Income' },
 
-        // Expenses
-        { id: 'expenses', label: 'Expenses', icon: '💸', group: 'Expenses' },
+        // Mosque Expenses
+        { id: 'mosque-expenses', label: 'Mosque Expenses', icon: '💸', group: 'Expenses' },
         { id: 'add-expense', label: 'Add Expense', icon: '📝', group: 'Expenses' },
 
         // System

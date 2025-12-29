@@ -664,7 +664,7 @@ function App() {
         );
       case 'add-mosque-income':
         return <AddMosqueIncome onAddIncome={addMosqueIncome} onCancel={() => setCurrentView('mosque-income')} />;
-      case 'expenses':
+      case 'mosque-expenses':
         return (
           <Expenses
             expenses={expenses}
@@ -673,7 +673,7 @@ function App() {
           />
         );
       case 'add-expense':
-        return <AddExpense onAddExpense={addExpense} onCancel={() => setCurrentView('expenses')} />;
+        return <AddExpense onAddExpense={addExpense} onCancel={() => setCurrentView('mosque-expenses')} />;
       case 'recycle-bin':
         return (
           <RecycleBin 

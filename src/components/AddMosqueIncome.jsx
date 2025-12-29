@@ -10,6 +10,9 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
         amount: '',
         date: new Date().toISOString().split('T')[0],
         description: '',
+        donorName: '',
+        mobileNumber: '',
+        address: ''
     });
 
     const [errors, setErrors] = useState({});
@@ -38,6 +41,20 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
 
     const validate = () => {
         const newErrors = {};
+
+        if (!formData.donorName.trim()) {
+            newErrors.donorName = t('Name is required');
+        }
+
+        if (!formData.mobileNumber.trim()) {
+            newErrors.mobileNumber = t('Mobile number is required');
+        } else if (!/^\d{10}$/.test(formData.mobileNumber)) {
+            newErrors.mobileNumber = t('Enter a valid 10-digit mobile number');
+        }
+
+        if (!formData.address.trim()) {
+            newErrors.address = t('Address is required');
+        }
 
         if (!formData.source.trim()) {
             newErrors.source = t('Income source is required');
@@ -78,6 +95,9 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
             amount: '',
             date: new Date().toISOString().split('T')[0],
             description: '',
+            donorName: '',
+            mobileNumber: '',
+            address: ''
         });
 
         alert(t('Mosque income recorded successfully!'));
@@ -92,6 +112,57 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
 
             <div className="card form-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
                 <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label" htmlFor="donorName">
+                            {t('Name')} *
+                        </label>
+                        <input
+                            type="text"
+                            id="donorName"
+                            name="donorName"
+                            className="form-input"
+                            value={formData.donorName}
+                            onChange={handleChange}
+                            placeholder={t("Enter name")}
+                        />
+                        {errors.donorName && <span className="error-message">{errors.donorName}</span>}
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="mobileNumber">
+                                {t('Mobile Number')} *
+                            </label>
+                            <input
+                                type="tel"
+                                id="mobileNumber"
+                                name="mobileNumber"
+                                className="form-input"
+                                value={formData.mobileNumber}
+                                onChange={handleChange}
+                                placeholder={t("Enter 10-digit mobile number")}
+                                maxLength="10"
+                            />
+                            {errors.mobileNumber && <span className="error-message">{errors.mobileNumber}</span>}
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="address">
+                                {t('Address')} *
+                            </label>
+                            <input
+                                type="text"
+                                id="address"
+                                name="address"
+                                className="form-input"
+                                value={formData.address}
+                                onChange={handleChange}
+                                placeholder={t("Enter address")}
+                            />
+                            {errors.address && <span className="error-message">{errors.address}</span>}
+                        </div>
+                    </div>
+
                     <div className="form-group">
                         <label className="form-label" htmlFor="source">
                             {t('Income Source')} *
