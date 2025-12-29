@@ -172,7 +172,7 @@ Since this is a web-based application, it can be hosted on any static file serve
     npm run dev
     ```
 4.  **Open in Browser**:
-    Navigate to `http://localhost:5173` (or the port shown in the terminal).
+    Navigate to - https://masjid-manager.vercel.app/
 
 ---
 
