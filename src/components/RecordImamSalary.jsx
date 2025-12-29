@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import jsPDF from 'jspdf';
 import './RecordPayment.css';
 
 function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment, onCancel }) {
@@ -93,6 +94,63 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment, onCa
         return newErrors;
     };
 
+    const generateReceipt = (payment, memberName) => {
+        const doc = new jsPDF();
+        const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+        const mosqueName = currentUser.name || 'Mosque Receipt';
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(40, 40, 40);
+        doc.text(mosqueName, 105, 20, { align: 'center' });
+        
+        // Date
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+        
+        // Line
+        doc.setLineWidth(0.5);
+        doc.line(20, 35, 190, 35);
+        
+        // Details
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        
+        let y = 50;
+        const addLine = (label, value) => {
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${label}:`, 20, y);
+            doc.setFont('helvetica', 'normal');
+            doc.text(String(value || '-'), 70, y);
+            y += 10;
+        };
+        
+        addLine('Receipt No', payment.id.slice(-6).toUpperCase());
+        addLine('Date', new Date(payment.paymentDate).toLocaleDateString());
+        addLine('Member Name', memberName);
+        
+        // Format month to "Month YYYY" (e.g., December 2025)
+        const [year, month] = payment.month.split('-');
+        const dateObj = new Date(parseInt(year), parseInt(month) - 1);
+        const formattedMonth = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        addLine('Payment Month', formattedMonth);
+        addLine('Amount', `Rs. ${parseFloat(payment.amount).toLocaleString()}`);
+        if (payment.notes) {
+            addLine('Notes', payment.notes);
+        }
+        
+        // Footer
+        doc.setLineWidth(0.5);
+        doc.line(20, y + 10, 190, y + 10);
+        
+        doc.setFontSize(10);
+        doc.text('Thank you for your contribution!', 105, y + 25, { align: 'center' });
+        
+        doc.save(`ImamSalary_Receipt_${memberName}_${payment.month}.pdf`);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -102,7 +160,19 @@ function RecordImamSalary({ members, imamSalaryPayments = [], onAddPayment, onCa
             return;
         }
 
-        onAddPayment(formData);
+        const paymentId = Date.now().toString();
+        const paymentData = {
+            ...formData,
+            id: paymentId,
+            recordedAt: new Date().toISOString()
+        };
+
+        const memberName = members.find(m => m.id === formData.memberId)?.name || 'Unknown';
+
+        // Generate PDF
+        generateReceipt(paymentData, memberName);
+
+        onAddPayment(paymentData);
 
         // Reset form but keep the current month
         setFormData({

@@ -458,9 +458,9 @@ function App() {
     if (user.role !== 'admin') return;
     const newPayment = {
       ...payment,
-      id: Date.now().toString(),
+      id: payment.id || Date.now().toString(),
       paymentType: 'imam_salary',
-      recordedAt: new Date().toISOString(),
+      recordedAt: payment.recordedAt || new Date().toISOString(),
     };
     setImamSalaryPayments([...imamSalaryPayments, newPayment]);
   };
