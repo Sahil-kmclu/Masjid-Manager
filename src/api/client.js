@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = "http://localhost:3001/api";
+const API_BASE_URL = "https://masjid-manager-backend.vercel.app/api";
 
 // Get stored auth token
 const getToken = () => localStorage.getItem("masjid_auth_token");
