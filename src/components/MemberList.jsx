@@ -413,8 +413,9 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                         <div className="modal-body">
                             {(() => {
                                 const stats = getMemberMonthlyStats(selectedMember);
-                                const paymentsList = getMemberPayments(selectedMember.id);
-                                const imamSalaryList = getMemberImamSalaryPayments(selectedMember.id);
+                                // Pass full member object to enable fallback matching by Name/Phone
+                                const paymentsList = getMemberPayments(selectedMember);
+                                const imamSalaryList = getMemberImamSalaryPayments(selectedMember);
                                 
                                 return (
                                     <div className="member-slip">
@@ -487,9 +488,9 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
 
                                         <div className="payment-history-section" style={{ marginTop: '20px' }}>
                                             <h5 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '5px', marginBottom: '10px' }}>Imam Salary Payments</h5>
-                                            <div className="history-list" style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                                            <div className="history-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                                                 {imamSalaryList.length > 0 ? (
-                                                    imamSalaryList.slice(0, 5).map(p => (
+                                                    imamSalaryList.map(p => (
                                                         <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
                                                             <span>{new Date(p.month + '-01').toLocaleDateString('default', { month: 'long', year: 'numeric' })}</span>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
