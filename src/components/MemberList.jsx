@@ -29,23 +29,59 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
         );
     }, [members, searchTerm]);
 
-    const getMemberPayments = (memberId) => {
-        return (payments || []).filter(p => p && p.memberId === memberId)
-            .sort((a, b) => new Date(b.month) - new Date(a.month));
+    // Helper to safely get string ID from various formats
+    const getSafeId = (val) => {
+        if (!val) return '';
+        if (typeof val === 'object' && val.id) return String(val.id);
+        if (typeof val === 'object' && val._id) return String(val._id);
+        return String(val);
     };
 
-    const getMemberImamSalaryPayments = (memberId) => {
+    const getMemberPayments = (member) => {
+        // Handle if member is just an ID or object
+        const targetId = getSafeId(member.id || member);
+        const targetName = member.name || "";
+        const targetPhone = member.phone || "";
+
+        return (payments || []).filter(p => {
+            if (!p) return false;
+            // Match by ID
+            if (getSafeId(p.memberId) === targetId) return true;
+            // Fallback: Match by Name and Phone if available
+            if (targetName && targetPhone && p.memberName === targetName && p.memberPhone === targetPhone) return true;
+            return false;
+        }).sort((a, b) => new Date(b.month) - new Date(a.month));
+    };
+
+    const getMemberImamSalaryPayments = (member) => {
         const sep2020 = new Date('2020-09-01');
+        // Handle if member is just an ID or object
+        const targetId = getSafeId(member.id || member);
+        const targetName = member.name || "";
+        const targetPhone = member.phone || "";
+        
         return (imamSalaryPayments || []).filter(p => {
             if (!p || !p.month) return false;
             const paymentDate = new Date(p.month + '-01');
-            return p.memberId === memberId && paymentDate >= sep2020;
+            if (paymentDate < sep2020) return false;
+
+            // Match by ID
+            if (getSafeId(p.memberId) === targetId) return true;
+            
+            // Fallback: Match by Name and Phone (very safe check)
+            if (targetName && targetPhone && p.memberName === targetName && p.memberPhone === targetPhone) return true;
+            
+            // Fallback 2: Match by Name only if Name is unique enough (optional, but let's stick to name+phone for safety)
+            // But some old records might miss phone. Let's trust Name if ID is missing in payment.
+            if (targetName && p.memberName === targetName && !p.memberId) return true;
+
+            return false;
         }).sort((a, b) => new Date(b.month) - new Date(a.month));
     };
 
     const getMemberMonthlyStats = (member) => {
-        const memberPaymentsList = getMemberPayments(member.id);
-        const memberImamSalaryList = getMemberImamSalaryPayments(member.id);
+        const memberPaymentsList = getMemberPayments(member);
+        const memberImamSalaryList = getMemberImamSalaryPayments(member);
 
         // Calculate total paid from BOTH general payments AND Imam salary payments
         const totalFromGeneralPayments = memberPaymentsList.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
@@ -307,7 +343,8 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                 </tr>
                             ) : (
                                 filteredMembers.map((member) => {
-                                    const memberPayments = getMemberPayments(member.id);
+                                    // Pass full member object now
+                                    const memberPayments = getMemberPayments(member);
                                     const isExpanded = selectedMember === member.id;
 
                                     return (
