@@ -168,7 +168,7 @@ function RecordImamSalary({
     doc.save(`ImamSalary_Receipt_${memberName}_${payment.month}.pdf`);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = validate();
@@ -195,22 +195,27 @@ function RecordImamSalary({
       notes: formData.notes || null,
     };
 
-    // Generate PDF with temporary ID for receipt display
-    const tempId = Date.now().toString();
-    generateReceipt({ ...paymentData, id: tempId }, member.name);
+    try {
+      // Generate PDF with temporary ID for receipt display
+      // const tempId = Date.now().toString();
+      // generateReceipt({ ...paymentData, id: tempId }, member.name);
 
-    onAddPayment(paymentData);
+      await onAddPayment(paymentData);
 
-    // Reset form but keep the current month
-    setFormData({
-      memberId: "",
-      month: currentMonth,
-      amount: "",
-      paymentDate: new Date().toISOString().split("T")[0],
-      notes: "",
-    });
+      // Reset form but keep the current month
+      setFormData({
+        memberId: "",
+        month: currentMonth,
+        amount: "",
+        paymentDate: new Date().toISOString().split("T")[0],
+        notes: "",
+      });
 
-    alert(t("Imam salary payment recorded successfully!"));
+      alert(t("Imam salary payment recorded successfully!"));
+    } catch (error) {
+      // Error is already alerted in onAddPayment (App.jsx), but we can log it
+      console.error("Payment recording failed:", error);
+    }
   };
 
   const selectedMember = members.find((m) => m.id === formData.memberId);

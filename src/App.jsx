@@ -313,8 +313,28 @@ function App() {
     try {
       const newPayment = await imamsApi.createImamSalaryPayment(paymentData);
       setImamSalaryPayments((prev) => [...prev, newPayment]);
+      
+      // Background refetch to ensure consistency without blocking UI
+      // specific fix: wait a bit to ensure server consistency, and verify our new payment is there
+      setTimeout(() => {
+        imamsApi.getImamSalaryPayments().then(updatedPayments => {
+          if (updatedPayments) {
+            setImamSalaryPayments(prev => {
+              // If the server list doesn't have our new payment yet, force keep it
+              const serverHasIt = updatedPayments.some(p => p.id === newPayment.id);
+              if (!serverHasIt) {
+                return [...updatedPayments, newPayment];
+              }
+              return updatedPayments;
+            });
+          }
+        });
+      }, 1000);
+      
+      return newPayment;
     } catch (err) {
       alert("Failed to add salary payment: " + err.message);
+      throw err;
     }
   };
 
