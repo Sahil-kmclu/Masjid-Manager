@@ -160,7 +160,8 @@ Since this is a web-based application, it can be hosted on any static file serve
 ### Steps to Run Locally
 1.  **Clone/Download the Repository**:
     ```bash
-    git clone https:
+    git clone https://github.com/your-repo/masjid-manager.git
+    cd masjid-manager
     ```
 2.  **Install Dependencies**:
     ```bash
@@ -171,7 +172,7 @@ Since this is a web-based application, it can be hosted on any static file serve
     npm run dev
     ```
 4.  **Open in Browser**:
-    Navigate to - https://masjid-manager.vercel.app/
+    Navigate to `http://localhost:5173` (or the port shown in the terminal).
 
 ---
 

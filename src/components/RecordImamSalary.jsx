@@ -76,10 +76,53 @@ function RecordImamSalary({
       if (selectedMonth < minDateObj) {
         newErrors.month = t("Payment cannot be before joining date");
       } else if (formData.memberId) {
-        // Check for duplicate payment
-        const isDuplicate = imamSalaryPayments.some(
-          (p) => p.memberId === formData.memberId && p.month === formData.month
-        );
+        // Check for duplicate payment (Robust Check)
+        const getSafeId = (val) => {
+            if (!val) return '';
+            if (typeof val === 'object' && val.id) return String(val.id);
+            if (typeof val === 'object' && val._id) return String(val._id);
+            return String(val);
+         };
+
+         const normalizeMonth = (m) => {
+            if (!m) return '';
+            const parts = m.split('-');
+            if (parts.length === 2) {
+                return `${parts[0]}-${parts[1].padStart(2, '0')}`;
+            }
+            return m;
+         };
+         
+         const targetMemberId = getSafeId(formData.memberId);
+         const targetMonth = normalizeMonth(formData.month);
+         const targetMemberName = selectedMember ? selectedMember.name : '';
+
+         console.log('Validating Duplicate:', { targetMemberId, targetMonth, targetMemberName });
+ 
+         const isDuplicate = imamSalaryPayments.some(p => {
+             if (!p) return false;
+             
+             const pMonth = normalizeMonth(p.month);
+             const pId = getSafeId(p.memberId);
+             
+             // Match Month (Normalized)
+             const monthMatch = pMonth === targetMonth;
+             
+             // Match ID
+             let memberMatch = false;
+             if (pId && targetMemberId && pId === targetMemberId) {
+                 memberMatch = true;
+             } else if (!pId && p.memberName && targetMemberName && p.memberName === targetMemberName) {
+                 // Fallback to Name match if ID is missing
+                 memberMatch = true;
+             }
+
+             if (monthMatch && memberMatch) {
+                 console.log('Duplicate Found:', p);
+                 return true;
+             }
+             return false;
+         });
 
         if (isDuplicate) {
           newErrors.month = t(
