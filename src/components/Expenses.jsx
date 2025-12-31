@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { verifyOTP } from '../utils/otp';
+import { generateExpenseSlipPDF } from '../utils/receiptGenerator';
 import './Expenses.css';
 
 function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
@@ -87,6 +88,17 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
         const isVerified = await verifyOTP(phoneToVerify, 'delete this expense record');
         if (isVerified) {
             onDeleteExpense(expense.id);
+        }
+    };
+
+    const handleDownloadSlip = (expense) => {
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('masjid_current_user') || '{}');
+            const mosqueName = currentUser.name || "CHURAMAN CHAK BHATWALIYA MASJID";
+            generateExpenseSlipPDF(expense, mosqueName);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert(t('Failed to generate PDF'));
         }
     };
 
@@ -224,15 +236,25 @@ function Expenses({ expenses, onDeleteExpense, isReadOnly }) {
                                         <td>{expense.paidTo || '-'}</td>
                                         <td>{t(expense.paymentMethod) || '-'}</td>
                                         <td>
-                                            {!isReadOnly && (
+                                            <div style={{ display: 'flex', gap: '5px' }}>
                                                 <button
-                                                    className="btn btn-sm btn-danger"
-                                                    onClick={() => handleDelete(expense)}
-                                                    title={t('Delete Expense')}
+                                                    className="btn btn-sm btn-secondary"
+                                                    onClick={() => handleDownloadSlip(expense)}
+                                                    title={t('Download Slip')}
+                                                    style={{ padding: '4px 8px' }}
                                                 >
-                                                    🗑️
+                                                    📄
                                                 </button>
-                                            )}
+                                                {!isReadOnly && (
+                                                    <button
+                                                        className="btn btn-sm btn-danger"
+                                                        onClick={() => handleDelete(expense)}
+                                                        title={t('Delete Expense')}
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
