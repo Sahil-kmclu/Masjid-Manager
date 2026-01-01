@@ -25,6 +25,38 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [otpInput, setOtpInput] = useState("");
 
+  // Helper to update local registry for Super Admin Panel
+  const updateLocalRegistry = (mosqueData) => {
+    try {
+      const existingMosques = JSON.parse(
+        localStorage.getItem("registered_mosques") || "[]"
+      );
+      
+      const index = existingMosques.findIndex((m) => m.id === mosqueData.id);
+      
+      if (index >= 0) {
+        // Update existing
+        existingMosques[index] = {
+          ...existingMosques[index],
+          ...mosqueData
+        };
+      } else {
+        // Add new
+        existingMosques.push({
+          ...mosqueData,
+          createdAt: mosqueData.createdAt || new Date().toISOString(),
+        });
+      }
+      
+      localStorage.setItem(
+        "registered_mosques",
+        JSON.stringify(existingMosques)
+      );
+    } catch (e) {
+      console.error("Failed to update local registry:", e);
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -63,6 +95,9 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
         secretCode: formData.secretCode,
       });
 
+      // Update local registry for Super Admin
+      updateLocalRegistry(response.mosque);
+
       // Auto login after register
       onLogin({
         ...response.mosque,
@@ -82,6 +117,10 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
 
     try {
       const response = await authApi.login(formData.email, formData.password);
+      
+      // Update local registry for Super Admin
+      updateLocalRegistry(response.mosque);
+
       onLogin({
         ...response.mosque,
         role: "admin",

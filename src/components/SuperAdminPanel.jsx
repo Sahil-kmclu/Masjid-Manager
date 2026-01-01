@@ -146,32 +146,42 @@ function SuperAdminPanel({ onLogout }) {
                 {activeTab === 'mosques' && (
                     <div className="card">
                         <h3>Registered Mosques ({mosques.length})</h3>
-                        <div className="table-container">
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Address</th>
-                                        <th>Phone</th>
-                                        <th>Email</th>
-                                        <th>Secret Code</th>
-                                        <th>Registered At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {mosques.map(mosque => (
-                                        <tr key={mosque.id}>
-                                            <td>{mosque.name}</td>
-                                            <td>{mosque.address}</td>
-                                            <td>{mosque.phone}</td>
-                                            <td>{mosque.email}</td>
-                                            <td><code>{mosque.secretCode}</code></td>
-                                            <td>{new Date(mosque.createdAt).toLocaleDateString()}</td>
+                        {mosques.length === 0 ? (
+                            <p className="text-muted">
+                                No registered mosques found in local registry.<br />
+                                <small>
+                                    Mosques will appear here after they are registered or logged in on this
+                                    device.
+                                </small>
+                            </p>
+                        ) : (
+                            <div className="table-container">
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Address</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>Secret Code</th>
+                                            <th>Registered At</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {mosques.map(mosque => (
+                                            <tr key={mosque.id}>
+                                                <td>{mosque.name}</td>
+                                                <td>{mosque.address}</td>
+                                                <td>{mosque.phone}</td>
+                                                <td>{mosque.email}</td>
+                                                <td><code>{mosque.secretCode}</code></td>
+                                                <td>{new Date(mosque.createdAt).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
