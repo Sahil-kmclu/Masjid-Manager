@@ -144,9 +144,9 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
 
     const handleDownloadSlip = (member) => {
         try {
-            const memberPayments = getMemberPayments(member.id);
-            const memberImamSalary = getMemberImamSalaryPayments(member.id);
-            const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate);
+            const memberPayments = getMemberPayments(member);
+            const memberImamSalary = getMemberImamSalaryPayments(member);
+            const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate, member.monthlyAmount);
             
             // Generate PDF
             generatePendingSlipPDF(member, pendingMonthsList, user?.name);
@@ -157,9 +157,9 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     };
 
     const handleShareWhatsApp = (member) => {
-        const memberPayments = getMemberPayments(member.id);
-        const memberImamSalary = getMemberImamSalaryPayments(member.id);
-        const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate);
+        const memberPayments = getMemberPayments(member);
+        const memberImamSalary = getMemberImamSalaryPayments(member);
+        const pendingMonthsList = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate, member.monthlyAmount);
         
         const currentMonthStr = new Date().toISOString().slice(0, 7);
         const slipText = generatePendingSlip(member, currentMonthStr, pendingMonthsList, user?.name);
@@ -214,9 +214,9 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     };
 
     const handleSendPendingSlip = (member) => {
-        const memberPayments = getMemberPayments(member.id);
-        const memberImamSalary = getMemberImamSalaryPayments(member.id);
-        const pendingMonths = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate);
+        const memberPayments = getMemberPayments(member);
+        const memberImamSalary = getMemberImamSalaryPayments(member);
+        const pendingMonths = calculatePendingMonths(memberPayments, memberImamSalary, member.joiningDate, member.monthlyAmount);
 
         if (pendingMonths.length === 0) {
             alert(t('This member has no pending payments!'));

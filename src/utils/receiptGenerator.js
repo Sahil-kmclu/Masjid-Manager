@@ -148,7 +148,7 @@ export const sendWhatsAppMessage = (phoneNumber, message) => {
 /**
  * Calculate pending months for a member (from Joining Date or default Sept 2020 to current month)
  */
-export const calculatePendingMonths = (generalPayments, imamSalaryPayments = [], memberJoiningDate = '2020-09-01') => {
+export const calculatePendingMonths = (generalPayments, imamSalaryPayments = [], memberJoiningDate = '2020-09-01', monthlyAmount = 0) => {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
@@ -170,6 +170,21 @@ export const calculatePendingMonths = (generalPayments, imamSalaryPayments = [],
         }
     }
 
+    // Logic 1: If monthlyAmount is provided, calculate based on TOTAL AMOUNT PAID
+    // This matches the Member Statistics logic in the UI
+    if (monthlyAmount > 0) {
+        const totalGeneral = (generalPayments || []).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        const totalImam = (imamSalaryPayments || []).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        const totalPaid = totalGeneral + totalImam;
+
+        const monthsPaidCount = Math.floor(totalPaid / parseFloat(monthlyAmount));
+
+        // Skip the first N months that are covered by the total amount
+        // Return the rest as pending
+        return allMonths.slice(monthsPaidCount);
+    }
+
+    // Logic 2: Fallback (Legacy) - Match specific month strings
     // Collect ALL paid months from both general payments AND Imam salary payments
     const generalPaidMonths = (generalPayments || []).map(p => p.month);
     const imamSalaryPaidMonths = (imamSalaryPayments || []).map(p => p.month);
