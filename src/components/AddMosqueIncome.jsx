@@ -48,8 +48,8 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
 
     if (!formData.mobileNumber.trim()) {
       newErrors.mobileNumber = t("Mobile number is required");
-    } else if (!/^\d{10}$/.test(formData.mobileNumber)) {
-      newErrors.mobileNumber = t("Enter a valid 10-digit mobile number");
+    } else if (!/^\+?[\d\s-]{7,15}$/.test(formData.mobileNumber.trim())) {
+      newErrors.mobileNumber = t("Enter a valid mobile number");
     }
 
     if (!formData.address.trim()) {
@@ -157,8 +157,8 @@ function AddMosqueIncome({ onAddIncome, onCancel }) {
                 className="form-input"
                 value={formData.mobileNumber}
                 onChange={handleChange}
-                placeholder={t("Enter 10-digit mobile number")}
-                maxLength="10"
+                placeholder={t("Enter mobile number")}
+                maxLength="15"
               />
               {errors.mobileNumber && (
                 <span className="error-message">{errors.mobileNumber}</span>

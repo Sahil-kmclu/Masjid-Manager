@@ -36,8 +36,8 @@ function AddMember({ onAddMember, onCancel }) {
 
         if (!formData.phone.trim()) {
             newErrors.phone = t('Phone number is required');
-        } else if (!/^\d{10}$/.test(formData.phone.replace(/\s/g, ''))) {
-            newErrors.phone = t('Please enter a valid 10-digit phone number');
+        } else if (!/^\+?[\d\s-]{7,15}$/.test(formData.phone.trim())) {
+            newErrors.phone = t('Please enter a valid phone number');
         }
 
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -117,7 +117,7 @@ function AddMember({ onAddMember, onCancel }) {
                                 className="form-input"
                                 value={formData.phone}
                                 onChange={handleChange}
-                                placeholder={t("10-digit mobile number")}
+                                placeholder={t("Mobile Number (e.g. +91...)")}
                             />
                             {errors.phone && <span className="error-message">{errors.phone}</span>}
                         </div>

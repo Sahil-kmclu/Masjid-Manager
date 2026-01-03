@@ -287,6 +287,9 @@ function Auth({ onLogin, currentTheme, onToggleTheme }) {
                 <label>{t("OTP Code")}</label>
                 <input
                   type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  autoComplete="one-time-code"
                   className="form-input"
                   value={otpInput}
                   onChange={(e) => {
