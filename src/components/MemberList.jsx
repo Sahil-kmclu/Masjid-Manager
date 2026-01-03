@@ -169,7 +169,12 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
 
     const handleEdit = (member) => {
         setEditMode(true);
-        setEditData(member);
+        // Ensure joiningDate is in YYYY-MM-DD format for the date input
+        const formattedData = {
+            ...member,
+            joiningDate: member.joiningDate ? member.joiningDate.split('T')[0] : ''
+        };
+        setEditData(formattedData);
         window.history.pushState({ modal: 'edit-member' }, '', '');
     };
 
