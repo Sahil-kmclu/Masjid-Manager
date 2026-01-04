@@ -179,8 +179,11 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     };
 
     const handleViewDetails = (member) => {
-        setSelectedMember(member);
-        window.history.pushState({ modal: 'view-member' }, '', '');
+        if (selectedMember === member.id) {
+            setSelectedMember(null);
+        } else {
+            setSelectedMember(member.id);
+        }
     };
 
     const handleSaveEdit = async () => {
@@ -350,11 +353,12 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                 filteredMembers.map((member) => {
                                     // Pass full member object now
                                     const memberPayments = getMemberPayments(member);
+                                    const stats = getMemberMonthlyStats(member);
                                     const isExpanded = selectedMember === member.id;
 
                                     return (
                                         <React.Fragment key={member.id}>
-                                            <tr>
+                                            <tr className={isExpanded ? "selected-row" : ""}>
                                                 <td>
                                                     <div className="member-name">{member.name}</div>
                                                 </td>
@@ -370,11 +374,11 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                     <div className="action-buttons">
                                                         <button 
                                                             className="action-btn view-btn" 
-                                                            title={t("View Slip / Stats")}
+                                                            title={isExpanded ? t("Close Details") : t("View Details")}
                                                             onClick={() => handleViewDetails(member)}
                                                             style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}
                                                         >
-                                                            📄
+                                                            {isExpanded ? '🔼' : '🔽'}
                                                         </button>
                                                         {!isReadOnly && (
                                                             <>
@@ -399,6 +403,192 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                     </div>
                                                 </td>
                                             </tr>
+                                            {isExpanded && (
+                                                <tr className="member-details-row">
+                                                    <td colSpan="6" style={{ padding: 0 }}>
+                                                        <div className="member-details fade-in" style={{ padding: '20px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)' }}>
+                                                            
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                                                <h3 style={{ margin: 0 }}>{t('Member Statistics')}</h3>
+                                                                <button 
+                                                                    onClick={() => setSelectedMember(null)}
+                                                                    style={{ 
+                                                                        background: 'rgba(255,255,255,0.1)', 
+                                                                        border: 'none', 
+                                                                        borderRadius: '50%', 
+                                                                        width: '30px', 
+                                                                        height: '30px', 
+                                                                        cursor: 'pointer',
+                                                                        color: 'var(--text-primary)',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center'
+                                                                    }}
+                                                                >✕</button>
+                                                            </div>
+
+                                                            <div style={{ marginBottom: '1.5rem' }}>
+                                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{member.name}</div>
+                                                                <div style={{ color: 'var(--text-secondary)' }}>{member.phone}</div>
+                                                            </div>
+
+                                                            <div className="details-section">
+                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                                                                    <div className="card p-3" style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                                                        <div className="text-sm text-muted" style={{ marginBottom: '0.5rem' }}>{t('Monthly Contribution')}</div>
+                                                                        <div className="font-bold" style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>₹{member.monthlyAmount}</div>
+                                                                    </div>
+                                                                    <div className="card p-3" style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                                                        <div className="text-sm text-muted" style={{ marginBottom: '0.5rem' }}>{t('Total Paid')}</div>
+                                                                        <div className="font-bold text-success" style={{ fontSize: '1.5rem', color: '#10b981' }}>₹{stats.totalPaid}</div>
+                                                                    </div>
+                                                                    <div className="card p-3" style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                                                        <div className="text-sm text-muted" style={{ marginBottom: '0.5rem' }}>{t('Pending Amount')}</div>
+                                                                        <div className="font-bold text-danger" style={{ fontSize: '1.5rem', color: '#ef4444' }}>₹{stats.remainingAmount}</div>
+                                                                    </div>
+                                                                    <div className="card p-3" style={{ background: 'var(--bg-tertiary)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                                                        <div className="text-sm text-muted" style={{ marginBottom: '0.5rem' }}>{t('Status')}</div>
+                                                                        <div className="font-bold" style={{ fontSize: '1.1rem', color: stats.statusColor }}>{stats.status}</div>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div style={{ marginBottom: '2rem' }}>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                                                        <span>{t('Payment Progress')}</span>
+                                                                        <span>{stats.monthsPaid} / {stats.expectedMonths} {t('months')}</span>
+                                                                    </div>
+                                                                    <div style={{ height: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px', overflow: 'hidden' }}>
+                                                                        <div style={{ 
+                                                                            height: '100%', 
+                                                                            width: `${stats.completionPercentage}%`, 
+                                                                            background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                                                                            borderRadius: '4px',
+                                                                            transition: 'width 0.5s ease-out'
+                                                                        }}></div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="grid md:grid-cols-2 gap-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+                                                                    {/* Recent Payments List */}
+                                                                    <div>
+                                                                        <h4 style={{ 
+                                                                            fontSize: '1rem', 
+                                                                            color: 'var(--text-secondary)', 
+                                                                            borderBottom: '1px solid var(--border-color)', 
+                                                                            paddingBottom: '0.5rem',
+                                                                            marginBottom: '1rem'
+                                                                        }}>{t('Recent Payments')}</h4>
+                                                                        
+                                                                        {memberPayments.length === 0 ? (
+                                                                            <p className="text-muted" style={{ fontStyle: 'italic' }}>{t('No general donation records')}</p>
+                                                                        ) : (
+                                                                            <div className="payment-history" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                                                                {memberPayments.map(payment => (
+                                                                                    <div key={payment.id} className="payment-record" style={{ 
+                                                                                        display: 'flex', 
+                                                                                        justifyContent: 'space-between', 
+                                                                                        padding: '0.75rem', 
+                                                                                        background: 'var(--bg-tertiary)', 
+                                                                                        marginBottom: '0.5rem', 
+                                                                                        borderRadius: '6px',
+                                                                                        alignItems: 'center'
+                                                                                    }}>
+                                                                                        <div>
+                                                                                            <div className="payment-month" style={{ fontWeight: '500' }}>
+                                                                                                {new Date(payment.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                                                                            </div>
+                                                                                            {payment.notes && <div className="payment-notes" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{payment.notes}</div>}
+                                                                                        </div>
+                                                                                        <div className="payment-record-actions">
+                                                                                            <span className="payment-record-amount" style={{ fontWeight: 'bold', color: '#10b981' }}>₹{payment.amount}</span>
+                                                                                            {!isReadOnly && (
+                                                                                                <button 
+                                                                                                    className="action-btn delete-btn-sm"
+                                                                                                    onClick={() => handleDeletePaymentWrapper(payment, member)}
+                                                                                                    title={t("Delete Payment")}
+                                                                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}
+                                                                                                >
+                                                                                                    🗑️
+                                                                                                </button>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Imam Salary Payments List */}
+                                                                    <div>
+                                                                        <h4 style={{ 
+                                                                            fontSize: '1rem', 
+                                                                            color: 'var(--text-secondary)', 
+                                                                            borderBottom: '1px solid var(--border-color)', 
+                                                                            paddingBottom: '0.5rem',
+                                                                            marginBottom: '1rem'
+                                                                        }}>{t('Imam Salary Payments')}</h4>
+                                                                        
+                                                                        {getMemberImamSalaryPayments(member).length === 0 ? (
+                                                                            <p className="text-muted" style={{ fontStyle: 'italic' }}>{t('No Imam salary records')}</p>
+                                                                        ) : (
+                                                                            <div className="payment-history" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                                                                {getMemberImamSalaryPayments(member).map(payment => (
+                                                                                    <div key={payment.id} className="payment-record" style={{ 
+                                                                                        display: 'flex', 
+                                                                                        justifyContent: 'space-between', 
+                                                                                        padding: '0.75rem', 
+                                                                                        background: 'var(--bg-tertiary)', 
+                                                                                        marginBottom: '0.5rem', 
+                                                                                        borderRadius: '6px',
+                                                                                        alignItems: 'center'
+                                                                                    }}>
+                                                                                        <div>
+                                                                                            <div className="payment-month" style={{ fontWeight: '500' }}>
+                                                                                                {new Date(payment.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                                                                            </div>
+                                                                                            {payment.notes && <div className="payment-notes" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{payment.notes}</div>}
+                                                                                        </div>
+                                                                                        <div className="payment-record-actions">
+                                                                                            <span className="payment-record-amount" style={{ fontWeight: 'bold', color: '#10b981' }}>₹{payment.amount}</span>
+                                                                                            {!isReadOnly && (
+                                                                                                <button 
+                                                                                                    className="action-btn delete-btn-sm"
+                                                                                                    onClick={() => handleDeleteImamSalaryPaymentWrapper(payment, member)}
+                                                                                                    title={t("Delete Payment")}
+                                                                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7 }}
+                                                                                                >
+                                                                                                    🗑️
+                                                                                                </button>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex gap-2 justify-end" style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                                                                    <button 
+                                                                        className="btn btn-secondary"
+                                                                        onClick={() => handleDownloadSlip(member)}
+                                                                        style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
+                                                                    >
+                                                                        <span>📄</span> {t('Download Slip')}
+                                                                    </button>
+                                                                    <button 
+                                                                        className="btn btn-success"
+                                                                        onClick={() => handleShareWhatsApp(member)}
+                                                                        style={{ flex: 1, background: '#25D366', color: 'white', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
+                                                                    >
+                                                                        <span>📱</span> {t('Share on WhatsApp')}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
                                         </React.Fragment>
                                     );
                                 })
@@ -408,139 +598,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                 </div>
             </div>
 
-            {selectedMember && !editMode && (
-                <div className="modal-overlay" onClick={() => window.history.back()}>
-                    <div className="modal-content large-modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>{t('Member Statistics')}</h3>
-                            <button className="close-btn" onClick={() => window.history.back()}>×</button>
-                        </div>
-                        <div className="modal-body">
-                            {(() => {
-                                const stats = getMemberMonthlyStats(selectedMember);
-                                // Pass full member object to enable fallback matching by Name/Phone
-                                const paymentsList = getMemberPayments(selectedMember);
-                                const imamSalaryList = getMemberImamSalaryPayments(selectedMember);
-                                
-                                return (
-                                    <div className="member-slip">
-                                        <div className="slip-header">
-                                            <h4>{selectedMember.name}</h4>
-                                            <p>{selectedMember.phone}</p>
-                                        </div>
 
-                                        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', marginBottom: '20px' }}>
-                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Monthly Contribution')}</label>
-                                                <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f8fafc' }}>₹{selectedMember.monthlyAmount}</span>
-                                            </div>
-                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Total Paid')}</label>
-                                                <span className="success-text" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ade80' }}>₹{stats.totalPaid}</span>
-                                            </div>
-                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Pending Amount')}</label>
-                                                <span className="danger-text" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#f87171' }}>₹{stats.remainingAmount}</span>
-                                            </div>
-                                            <div className="stat-box" style={{ background: '#334155', padding: '10px', borderRadius: '8px', border: '1px solid #475569' }}>
-                                                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem' }}>{t('Status')}</label>
-                                                <span style={{ color: stats.statusColor, fontWeight: 'bold' }}>
-                                                    {stats.status}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="progress-section" style={{ marginBottom: '20px' }}>
-                                            <label style={{ display: 'block', marginBottom: '5px' }}>{t('Payment Progress')} ({stats.monthsPaid} / {stats.expectedMonths} {t('months')})</label>
-                                            <div className="progress-bar" style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                                                <div 
-                                                    className="progress-fill" 
-                                                    style={{ 
-                                                        width: `${stats.completionPercentage}%`,
-                                                        backgroundColor: stats.statusColor,
-                                                        height: '100%'
-                                                    }}
-                                                ></div>
-                                            </div>
-                                        </div>
-
-                                        <div className="payment-history-section">
-                                            <h5 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '5px', marginBottom: '10px' }}>Recent Payments</h5>
-                                            <div className="history-list" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                                                {paymentsList.length > 0 ? (
-                                                    paymentsList.slice(0, 5).map(p => (
-                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                                            <span>{new Date(p.month + '-01').toLocaleDateString('default', { month: 'long', year: 'numeric' })}</span>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
-                                                                {!isReadOnly && (
-                                                                    <button 
-                                                                        onClick={() => handleDeletePaymentWrapper(p, selectedMember)}
-                                                                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                                                                        title={t('Delete Payment')}
-                                                                    >
-                                                                        🗑️
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <p className="no-data" style={{ color: '#94a3b8', fontStyle: 'italic' }}>No general donation records</p>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="payment-history-section" style={{ marginTop: '20px' }}>
-                                            <h5 style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '5px', marginBottom: '10px' }}>Imam Salary Payments</h5>
-                                            <div className="history-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                                {imamSalaryList.length > 0 ? (
-                                                    imamSalaryList.map(p => (
-                                                        <div key={p.id} className="history-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                                                            <span>{new Date(p.month + '-01').toLocaleDateString('default', { month: 'long', year: 'numeric' })}</span>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                <span className="amount" style={{ fontWeight: '600' }}>₹{p.amount}</span>
-                                                                {!isReadOnly && (
-                                                                    <button 
-                                                                        onClick={() => handleDeleteImamSalaryPaymentWrapper(p, selectedMember)}
-                                                                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem' }}
-                                                                        title={t('Delete Payment')}
-                                                                    >
-                                                                        🗑️
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <p className="no-data" style={{ color: '#94a3b8', fontStyle: 'italic' }}>No imam salary records</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="slip-actions" style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-                                            <button 
-                                                className="btn btn-secondary"
-                                                onClick={() => handleDownloadSlip(selectedMember)}
-                                                style={{ flex: 1 }}
-                                            >
-                                                Download Slip 📄
-                                            </button>
-                                            <button 
-                                                className="btn btn-success"
-                                                onClick={() => handleShareWhatsApp(selectedMember)}
-                                                style={{ flex: 1, background: '#25D366', color: 'white', border: 'none' }}
-                                            >
-                                                Share on WhatsApp 📱
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
