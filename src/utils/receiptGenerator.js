@@ -57,42 +57,46 @@ export const generatePendingSlip = (member, month, pendingMonths = [], mosqueNam
     });
 
     const name = mosqueName || "CHURAMAN CHAK BHATWALIYA MASJID";
+    const isFullyPaid = !pendingMonths || pendingMonths.length === 0;
+    const title = isFullyPaid ? "PAYMENT STATUS" : "PAYMENT REMINDER";
 
     let slip = `━━━━━━━━━━━━━━━━━━━━━
 🕌 *${name.toUpperCase()}*
 ━━━━━━━━━━━━━━━━━━━━━
 
-📝 *PAYMENT REMINDER*
+📝 *${title}*
 
 Assalamu Alaikum ${member.name},
 
 *Your Details:*
 Name: ${member.name}
 Phone: ${member.phone}
-Monthly Amount: ₹${member.monthlyAmount}
+Monthly Amount: ₹${member.monthlyAmount}`;
 
-*Pending Payment:*`;
-
-    if (pendingMonths && pendingMonths.length > 0) {
-        slip += `\n\n*Pending Months:*\n`;
-        pendingMonths.forEach((m, index) => {
-            const mName = new Date(m + '-01').toLocaleDateString('en-IN', {
-                month: 'long',
-                year: 'numeric'
+    if (!isFullyPaid) {
+        slip += `\n\n*Pending Payment:*`;
+        
+        if (pendingMonths && pendingMonths.length > 0) {
+            slip += `\n\n*Pending Months:*\n`;
+            pendingMonths.forEach((m, index) => {
+                const mName = new Date(m + '-01').toLocaleDateString('en-IN', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+                slip += `${index + 1}. ${mName} - ₹${member.monthlyAmount}\n`;
             });
-            slip += `${index + 1}. ${mName} - ₹${member.monthlyAmount}\n`;
-        });
-        const totalPending = pendingMonths.length * parseFloat(member.monthlyAmount);
-        slip += `\n*Total Pending:* ₹${totalPending}`;
+            const totalPending = pendingMonths.length * parseFloat(member.monthlyAmount);
+            slip += `\n*Total Pending:* ₹${totalPending}`;
+        }
     } else {
-        slip += `\nMonth: ${monthYear}
-Amount: ₹${member.monthlyAmount}`;
+        slip += `\n\n*Status:* ✅ Fully Paid
+You have no pending payments. JazakAllah Khair for your contributions!`;
     }
 
     slip += `
 
 ━━━━━━━━━━━━━━━━━━━━━
-This is a friendly reminder to submit your monthly donation at your earliest convenience.
+${isFullyPaid ? "May Allah accept your donations." : "This is a friendly reminder to submit your monthly donation at your earliest convenience."}
 
 JazakAllah Khair!
 ━━━━━━━━━━━━━━━━━━━━━`;
