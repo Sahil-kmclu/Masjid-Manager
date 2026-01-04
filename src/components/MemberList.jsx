@@ -168,6 +168,9 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     };
 
     const handleEdit = (member) => {
+        if (selectedMember !== member.id) {
+            setSelectedMember(member.id);
+        }
         setEditMode(true);
         // Ensure joiningDate is in YYYY-MM-DD format for the date input
         const formattedData = {
@@ -175,14 +178,15 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
             joiningDate: member.joiningDate ? member.joiningDate.split('T')[0] : ''
         };
         setEditData(formattedData);
-        window.history.pushState({ modal: 'edit-member' }, '', '');
     };
 
     const handleViewDetails = (member) => {
         if (selectedMember === member.id) {
             setSelectedMember(null);
+            setEditMode(false);
         } else {
             setSelectedMember(member.id);
+            setEditMode(false);
         }
     };
 
@@ -191,7 +195,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
         if (isVerified) {
             onUpdateMember(editData.id, editData);
             alert(t('Member updated successfully!'));
-            window.history.back();
+            setEditMode(false);
         }
     };
 
@@ -218,7 +222,8 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
     };
 
     const handleCancelEdit = () => {
-        window.history.back();
+        setEditMode(false);
+        setEditData({});
     };
 
     const handleSendPendingSlip = (member) => {
@@ -254,80 +259,7 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                 </div>
             </div>
 
-            {editMode && (
-                <div className="modal-overlay" onClick={handleCancelEdit}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>{t('Edit Member')}</h3>
-                            <button className="btn btn-secondary btn-sm" onClick={handleCancelEdit}>✕</button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label className="form-label">{t('Name')}</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={editData.name}
-                                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">{t('Phone')}</label>
-                                <input
-                                    type="tel"
-                                    className="form-input"
-                                    value={editData.phone}
-                                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">{t('Email')}</label>
-                                <input
-                                    type="email"
-                                    className="form-input"
-                                    value={editData.email || ''}
-                                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">{t('Monthly Amount (₹)')}</label>
-                                <input
-                                    type="number"
-                                    className="form-input"
-                                    value={editData.monthlyAmount}
-                                    onChange={(e) => setEditData({ ...editData, monthlyAmount: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">{t('Joining Date')}</label>
-                                <input
-                                    type="date"
-                                    className="form-input"
-                                    value={editData.joiningDate || ''}
-                                    onChange={(e) => setEditData({ ...editData, joiningDate: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">{t('Address')}</label>
-                                <textarea
-                                    className="form-textarea"
-                                    value={editData.address || ''}
-                                    onChange={(e) => setEditData({ ...editData, address: e.target.value })}
-                                    rows="3"
-                                />
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-primary" onClick={handleSaveEdit}>
-                                {t('Save Changes')}
-                            </button>
-                            <button className="btn btn-secondary" onClick={handleCancelEdit}>
-                                {t('Cancel')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             <div className="card">
                 <div className="table-container">
@@ -408,8 +340,98 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                     <td colSpan="6" style={{ padding: 0 }}>
                                                         <div className="member-details fade-in" style={{ padding: '20px', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)' }}>
                                                             
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                                                <h3 style={{ margin: 0 }}>{t('Member Statistics')}</h3>
+                                                            {editMode ? (
+                                                                <div className="edit-member-form fade-in">
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                                                        <h3 style={{ margin: 0 }}>{t('Edit Member')}</h3>
+                                                                        <button 
+                                                                            onClick={handleCancelEdit}
+                                                                            style={{ 
+                                                                                background: 'rgba(255,255,255,0.1)', 
+                                                                                border: 'none', 
+                                                                                borderRadius: '50%', 
+                                                                                width: '30px', 
+                                                                                height: '30px', 
+                                                                                cursor: 'pointer',
+                                                                                color: 'var(--text-primary)',
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'center'
+                                                                            }}
+                                                                        >✕</button>
+                                                                    </div>
+
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                                                                        <div className="form-group">
+                                                                            <label className="form-label">{t('Name')}</label>
+                                                                            <input
+                                                                                type="text"
+                                                                                className="form-input"
+                                                                                value={editData.name || ''}
+                                                                                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="form-group">
+                                                                            <label className="form-label">{t('Phone')}</label>
+                                                                            <input
+                                                                                type="tel"
+                                                                                className="form-input"
+                                                                                value={editData.phone || ''}
+                                                                                onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="form-group">
+                                                                            <label className="form-label">{t('Email')}</label>
+                                                                            <input
+                                                                                type="email"
+                                                                                className="form-input"
+                                                                                value={editData.email || ''}
+                                                                                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="form-group">
+                                                                            <label className="form-label">{t('Monthly Amount (₹)')}</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                className="form-input"
+                                                                                value={editData.monthlyAmount || ''}
+                                                                                onChange={(e) => setEditData({ ...editData, monthlyAmount: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="form-group">
+                                                                            <label className="form-label">{t('Joining Date')}</label>
+                                                                            <input
+                                                                                type="date"
+                                                                                className="form-input"
+                                                                                value={editData.joiningDate || ''}
+                                                                                onChange={(e) => setEditData({ ...editData, joiningDate: e.target.value })}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="form-group md:col-span-2" style={{ gridColumn: '1 / -1' }}>
+                                                                            <label className="form-label">{t('Address')}</label>
+                                                                            <textarea
+                                                                                className="form-textarea"
+                                                                                value={editData.address || ''}
+                                                                                onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                                                                                rows="3"
+                                                                                style={{ width: '100%', minHeight: '80px' }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="mt-6 flex justify-end gap-3" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                                                                        <button className="btn btn-secondary" onClick={handleCancelEdit}>
+                                                                            {t('Cancel')}
+                                                                        </button>
+                                                                        <button className="btn btn-primary" onClick={handleSaveEdit}>
+                                                                            {t('Save Changes')}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div>
+                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                                                        <h3 style={{ margin: 0 }}>{t('Member Statistics')}</h3>
                                                                 <button 
                                                                     onClick={() => setSelectedMember(null)}
                                                                     style={{ 
@@ -584,8 +606,10 @@ function MemberList({ members = [], payments = [], imamSalaryPayments = [], onUp
                                                                         <span>📱</span> {t('Share on WhatsApp')}
                                                                     </button>
                                                                 </div>
+                                                                </div>
+                                                                </div>
+                                                            )}
                                                             </div>
-                                                        </div>
                                                     </td>
                                                 </tr>
                                             )}
